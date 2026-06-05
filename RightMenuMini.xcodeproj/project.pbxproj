@@ -1,0 +1,507 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0A0A00000000000000000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A0A00000000000000000011 /* AppDelegate.swift */; };
+		0A0A00000000000000000002 /* FinderSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A0A00000000000000000012 /* FinderSync.swift */; };
+		0A0A00000000000000000003 /* RightMenuMiniFinderExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 0A0A00000000000000000022 /* RightMenuMiniFinderExtension.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		0A0A00000000000000000004 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A0A00000000000000000031 /* Cocoa.framework */; };
+		0A0A00000000000000000005 /* FinderSync.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A0A00000000000000000032 /* FinderSync.framework */; };
+		0A0A00000000000000000006 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0A0A00000000000000000019 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		0A0A00000000000000000041 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0A0A000000000000000000F0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0A0A000000000000000000A2;
+			remoteInfo = RightMenuMiniFinderExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		0A0A00000000000000000061 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				0A0A00000000000000000003 /* RightMenuMiniFinderExtension.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0A0A00000000000000000011 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		0A0A00000000000000000012 /* FinderSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderSync.swift; sourceTree = "<group>"; };
+		0A0A00000000000000000013 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		0A0A00000000000000000014 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		0A0A00000000000000000018 /* RightMenuMiniFinderExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RightMenuMiniFinderExtension.entitlements; sourceTree = "<group>"; };
+		0A0A00000000000000000019 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		0A0A00000000000000000015 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		0A0A00000000000000000016 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		0A0A00000000000000000017 /* install-local.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "install-local.sh"; sourceTree = "<group>"; };
+		0A0A00000000000000000021 /* RightMenuMini.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RightMenuMini.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0A0A00000000000000000022 /* RightMenuMiniFinderExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = RightMenuMiniFinderExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		0A0A00000000000000000031 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		0A0A00000000000000000032 /* FinderSync.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FinderSync.framework; path = System/Library/Frameworks/FinderSync.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0A0A00000000000000000071 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0A0A00000000000000000072 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0A0A00000000000000000005 /* FinderSync.framework in Frameworks */,
+				0A0A00000000000000000004 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0A0A00000000000000000081 = {
+			isa = PBXGroup;
+			children = (
+				0A0A00000000000000000083 /* RightMenuMini */,
+				0A0A00000000000000000084 /* RightMenuMiniFinderExtension */,
+				0A0A00000000000000000085 /* Scripts */,
+				0A0A00000000000000000086 /* Frameworks */,
+				0A0A00000000000000000082 /* Products */,
+				0A0A00000000000000000015 /* README.md */,
+				0A0A00000000000000000016 /* .gitignore */,
+			);
+			sourceTree = "<group>";
+		};
+		0A0A00000000000000000082 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0A0A00000000000000000021 /* RightMenuMini.app */,
+				0A0A00000000000000000022 /* RightMenuMiniFinderExtension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0A0A00000000000000000083 /* RightMenuMini */ = {
+			isa = PBXGroup;
+			children = (
+				0A0A00000000000000000011 /* AppDelegate.swift */,
+				0A0A00000000000000000013 /* Info.plist */,
+				0A0A00000000000000000019 /* Assets.xcassets */,
+			);
+			path = RightMenuMini;
+			sourceTree = "<group>";
+		};
+		0A0A00000000000000000084 /* RightMenuMiniFinderExtension */ = {
+			isa = PBXGroup;
+			children = (
+				0A0A00000000000000000012 /* FinderSync.swift */,
+				0A0A00000000000000000014 /* Info.plist */,
+				0A0A00000000000000000018 /* RightMenuMiniFinderExtension.entitlements */,
+			);
+			path = RightMenuMiniFinderExtension;
+			sourceTree = "<group>";
+		};
+		0A0A00000000000000000085 /* Scripts */ = {
+			isa = PBXGroup;
+			children = (
+				0A0A00000000000000000017 /* install-local.sh */,
+			);
+			path = Scripts;
+			sourceTree = "<group>";
+		};
+		0A0A00000000000000000086 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0A0A00000000000000000031 /* Cocoa.framework */,
+				0A0A00000000000000000032 /* FinderSync.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0A0A000000000000000000A1 /* RightMenuMini */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0A0A000000000000000000D1 /* Build configuration list for PBXNativeTarget "RightMenuMini" */;
+			buildPhases = (
+				0A0A00000000000000000051 /* Sources */,
+				0A0A00000000000000000071 /* Frameworks */,
+				0A0A00000000000000000091 /* Resources */,
+				0A0A00000000000000000061 /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0A0A00000000000000000042 /* PBXTargetDependency */,
+			);
+			name = RightMenuMini;
+			productName = RightMenuMini;
+			productReference = 0A0A00000000000000000021 /* RightMenuMini.app */;
+			productType = "com.apple.product-type.application";
+		};
+		0A0A000000000000000000A2 /* RightMenuMiniFinderExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0A0A000000000000000000D2 /* Build configuration list for PBXNativeTarget "RightMenuMiniFinderExtension" */;
+			buildPhases = (
+				0A0A00000000000000000052 /* Sources */,
+				0A0A00000000000000000072 /* Frameworks */,
+				0A0A00000000000000000092 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = RightMenuMiniFinderExtension;
+			productName = RightMenuMiniFinderExtension;
+			productReference = 0A0A00000000000000000022 /* RightMenuMiniFinderExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0A0A000000000000000000F0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2630;
+				LastUpgradeCheck = 2630;
+				TargetAttributes = {
+					0A0A000000000000000000A1 = {
+						CreatedOnToolsVersion = 26.3;
+					};
+					0A0A000000000000000000A2 = {
+						CreatedOnToolsVersion = 26.3;
+					};
+				};
+			};
+			buildConfigurationList = 0A0A000000000000000000D0 /* Build configuration list for PBXProject "RightMenuMini" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 0A0A00000000000000000081;
+			productRefGroup = 0A0A00000000000000000082 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				0A0A000000000000000000A1 /* RightMenuMini */,
+				0A0A000000000000000000A2 /* RightMenuMiniFinderExtension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		0A0A00000000000000000091 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0A0A00000000000000000006 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0A0A00000000000000000092 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0A0A00000000000000000051 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0A0A00000000000000000001 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0A0A00000000000000000052 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0A0A00000000000000000002 /* FinderSync.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		0A0A00000000000000000042 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0A0A000000000000000000A2 /* RightMenuMiniFinderExtension */;
+			targetProxy = 0A0A00000000000000000041 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0A0A000000000000000000B1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		0A0A000000000000000000B2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		0A0A000000000000000000B3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Apple Development: awubo1999@gmail.com (U3L95K5S84)";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_LANGUAGE = en;
+				DEVELOPMENT_TEAM = FVK2878B2R;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = RightMenuMini/Info.plist;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Personal utility.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.codex.RightMenuMini;
+				PRODUCT_NAME = RightMenuMini;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		0A0A000000000000000000B4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Apple Development: awubo1999@gmail.com (U3L95K5S84)";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_LANGUAGE = en;
+				DEVELOPMENT_TEAM = FVK2878B2R;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = RightMenuMini/Info.plist;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Personal utility.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.codex.RightMenuMini;
+				PRODUCT_NAME = RightMenuMini;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		0A0A000000000000000000B5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = RightMenuMiniFinderExtension/RightMenuMiniFinderExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development: awubo1999@gmail.com (U3L95K5S84)";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_LANGUAGE = en;
+				DEVELOPMENT_TEAM = FVK2878B2R;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = RightMenuMiniFinderExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.codex.RightMenuMini.FinderExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		0A0A000000000000000000B6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = RightMenuMiniFinderExtension/RightMenuMiniFinderExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development: awubo1999@gmail.com (U3L95K5S84)";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_LANGUAGE = en;
+				DEVELOPMENT_TEAM = FVK2878B2R;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = RightMenuMiniFinderExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.codex.RightMenuMini.FinderExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0A0A000000000000000000D0 /* Build configuration list for PBXProject "RightMenuMini" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0A0A000000000000000000B1 /* Debug */,
+				0A0A000000000000000000B2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0A0A000000000000000000D1 /* Build configuration list for PBXNativeTarget "RightMenuMini" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0A0A000000000000000000B3 /* Debug */,
+				0A0A000000000000000000B4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0A0A000000000000000000D2 /* Build configuration list for PBXNativeTarget "RightMenuMiniFinderExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0A0A000000000000000000B5 /* Debug */,
+				0A0A000000000000000000B6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0A0A000000000000000000F0 /* Project object */;
+}
