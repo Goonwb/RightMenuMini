@@ -8,6 +8,11 @@ private enum RightMenuMiniPreferences {
     static let isTerminalEnabled = "isTerminalEnabled"
     static let isCopyPathEnabled = "isCopyPathEnabled"
     static let isGroupedMenuEnabled = "isGroupedMenuEnabled"
+    static let languageMode = "languageMode"
+
+    static let systemValue = "system"
+    static let chineseValue = "zh-Hans"
+    static let englishValue = "en"
 
     static let defaultValues: [String: Bool] = [
         isMenuEnabled: true,
@@ -16,11 +21,19 @@ private enum RightMenuMiniPreferences {
         isCopyPathEnabled: true,
         isGroupedMenuEnabled: false
     ]
+    static let stringDefaultValues: [String: String] = [
+        languageMode: systemValue
+    ]
+    static var registeredDefaults: [String: Any] {
+        var values: [String: Any] = defaultValues.mapValues { $0 as Any }
+        stringDefaultValues.forEach { values[$0.key] = $0.value }
+        return values
+    }
     static let extensionContainerIdentifier = "com.codex.RightMenuMini.FinderExtension"
 
     static func store() -> UserDefaults {
         let store = UserDefaults(suiteName: suiteName) ?? .standard
-        store.register(defaults: defaultValues)
+        store.register(defaults: registeredDefaults)
         return store
     }
 
@@ -29,6 +42,33 @@ private enum RightMenuMiniPreferences {
             return defaultValues[key] ?? false
         }
         return store.bool(forKey: key)
+    }
+
+    static func string(_ key: String, in store: UserDefaults) -> String {
+        let fallback = stringDefaultValues[key] ?? systemValue
+        guard let value = store.string(forKey: key), !value.isEmpty else {
+            return fallback
+        }
+        return value
+    }
+
+    static func resolvedString(_ key: String) -> String {
+        var value = string(key, in: store())
+
+        for url in preferenceFileURLs() {
+            guard
+                let data = try? Data(contentsOf: url),
+                let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil),
+                let dictionary = plist as? [String: Any],
+                let mirroredValue = dictionary[key] as? String,
+                !mirroredValue.isEmpty
+            else {
+                continue
+            }
+            value = mirroredValue
+        }
+
+        return value
     }
 
     static func resolvedValues() -> [String: Bool] {
@@ -113,6 +153,27 @@ private enum RightMenuMiniPreferences {
     }
 }
 
+private enum MenuText {
+    static var languageMode: String {
+        RightMenuMiniPreferences.resolvedString(RightMenuMiniPreferences.languageMode)
+    }
+
+    static var isEnglish: Bool {
+        switch languageMode {
+        case RightMenuMiniPreferences.englishValue:
+            return true
+        case RightMenuMiniPreferences.chineseValue:
+            return false
+        default:
+            return Locale.preferredLanguages.first?.lowercased().hasPrefix("en") == true
+        }
+    }
+
+    static func localized(_ chinese: String, _ english: String) -> String {
+        isEnglish ? english : chinese
+    }
+}
+
 @objc(FinderSync)
 final class FinderSync: FIFinderSync {
     private let containingAppBundleIdentifier = "com.codex.RightMenuMini"
@@ -137,12 +198,13 @@ final class FinderSync: FIFinderSync {
             return nil
         }
 
-        let menu = NSMenu(title: "右键菜单助手")
+        let menuTitle = MenuText.localized("右键菜单助手", "RightMenuMini")
+        let menu = NSMenu(title: menuTitle)
 
         if RightMenuMiniPreferences.bool(RightMenuMiniPreferences.isGroupedMenuEnabled, in: preferences) {
-            let groupItem = NSMenuItem(title: "右键菜单助手", action: nil, keyEquivalent: "")
+            let groupItem = NSMenuItem(title: menuTitle, action: nil, keyEquivalent: "")
             groupItem.image = symbol("contextualmenu.and.cursorarrow")
-            let submenu = NSMenu(title: "右键菜单助手")
+            let submenu = NSMenu(title: menuTitle)
             actionItems.forEach { submenu.addItem($0) }
             groupItem.submenu = submenu
             menu.addItem(groupItem)
@@ -157,15 +219,15 @@ final class FinderSync: FIFinderSync {
         var items: [NSMenuItem] = []
 
         if RightMenuMiniPreferences.bool(RightMenuMiniPreferences.isNewTextEnabled, in: preferences) {
-            items.append(menuItem(title: "新建 Text", symbolName: "doc.badge.plus", action: #selector(createTextFile(_:))))
+            items.append(menuItem(title: MenuText.localized("新建 Text", "New Text"), symbolName: "doc.badge.plus", action: #selector(createTextFile(_:))))
         }
 
         if RightMenuMiniPreferences.bool(RightMenuMiniPreferences.isTerminalEnabled, in: preferences) {
-            items.append(menuItem(title: "进入终端", symbolName: "terminal", action: #selector(openTerminal(_:))))
+            items.append(menuItem(title: MenuText.localized("进入终端", "Open Terminal"), symbolName: "terminal", action: #selector(openTerminal(_:))))
         }
 
         if RightMenuMiniPreferences.bool(RightMenuMiniPreferences.isCopyPathEnabled, in: preferences) {
-            items.append(menuItem(title: "拷贝路径", symbolName: "doc.on.doc", action: #selector(copyPath(_:))))
+            items.append(menuItem(title: MenuText.localized("拷贝路径", "Copy Path"), symbolName: "doc.on.doc", action: #selector(copyPath(_:))))
         }
 
         return items

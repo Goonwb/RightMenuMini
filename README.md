@@ -2,10 +2,16 @@
   <img src="RightMenuMini/Resources/RightMenuMini-source.png" width="112" alt="RightMenuMini icon">
 </p>
 
-<h1 align="center">右键菜单助手</h1>
+<h1 align="center">RightMenuMini</h1>
 
 <p align="center">
-  <strong>RightMenuMini</strong> is a small macOS Finder extension that adds a few practical actions to the right-click menu.
+  A minimal macOS Finder context-menu extension.
+</p>
+
+<p align="center">
+  <a href="README.md">English</a>
+  |
+  <a href="README.zh-CN.md">中文</a>
 </p>
 
 <p align="center">
@@ -18,15 +24,28 @@
 
 RightMenuMini keeps the Finder context menu focused on three everyday actions:
 
-- **New Text File**: create an empty `Untitled.txt` in the current Finder folder. Duplicate names are numbered automatically.
-- **Open Terminal Here**: open Terminal at the current Finder location.
+- **New Text**: create an empty `Untitled.txt` in the current Finder folder. Duplicate names are numbered automatically.
+- **Open Terminal**: open Terminal at the current Finder location.
 - **Copy Path**: copy selected item paths, or copy the current folder path when nothing is selected.
 
-The app also provides simple preferences:
+The app supports:
 
-- Enable or disable the whole Finder menu.
-- Enable or disable each action individually.
-- Show actions directly in the Finder menu, or collapse them into a submenu.
+- A master switch for the Finder context menu.
+- Individual switches for each action.
+- Optional grouped submenu display.
+- Manual update checking from GitHub Releases.
+- Language selection: System, Simplified Chinese, or English.
+- Appearance selection: System, Light, or Dark.
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/images/overview-en.png" alt="RightMenuMini overview" width="820">
+</p>
+
+<p align="center">
+  <img src="docs/images/settings-en.png" alt="RightMenuMini settings" width="820">
+</p>
 
 ## Requirements
 
@@ -34,8 +53,6 @@ The app also provides simple preferences:
 - Xcode 15 or later for building from source
 
 ## Install From Source
-
-Clone the repository, then run the local install script:
 
 ```zsh
 chmod +x Scripts/install-local.sh
@@ -62,22 +79,21 @@ open build/Build/Products/Release/RightMenuMini.app
 RightMenuMini uses Apple's Finder Sync extension mechanism. macOS requires users to enable Finder extensions manually:
 
 1. Open RightMenuMini.
-2. Click **初次授权**.
-3. Enable **右键菜单助手** in the **文件提供程序** extension sheet.
+2. Click **Authorize**.
+3. Enable **RightMenuMini** or **右键菜单助手** in the **File Provider** extension sheet.
 
-After the extension is enabled, the right-click menu works without keeping the main app window open.
+Before permission is granted, all switches are shown as off and disabled. After permission is enabled, the app restores the default or saved settings.
 
 ## Updating
 
 macOS cannot replace an app bundle while it is running. Before replacing an older copy in `/Applications`, quit RightMenuMini from the menu bar.
 
-The local install script also tries to quit old app and extension processes before copying the new build.
+Release archives in `dist/` are intentionally ignored by Git. Use GitHub Releases for public distribution.
 
 ## Notes
 
-- RightMenuMini is a personal utility in early development. Current version: `0.1.0`.
-- The distributed app is not notarized. When sharing builds with others, they may need to allow the app manually in macOS security settings.
-- The generated zip in `dist/` is intentionally ignored by Git. Release archives should be uploaded through GitHub Releases instead of committed to the repository.
+- Current version: `0.1.1`.
+- The distributed app is not notarized yet. Users may need to allow it manually in macOS security settings.
 
 ## License
 
