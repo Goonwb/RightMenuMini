@@ -34,17 +34,17 @@ App 内支持：
 - 子功能开关：单独启用或停用三项功能。
 - 折叠显示：将三项功能收进一个子菜单。
 - 版本检查：从 GitHub Releases 手动检查最新版本。
-- 语言：跟随系统、简体中文或 English。
+- 语言：简体中文或 English。
 - 外观：跟随系统、浅色或深色模式。
 
 ## 界面预览
 
 <p align="center">
-  <img src="docs/images/overview-zh-CN.png" alt="右键菜单助手概览界面" width="820">
+  <img src="docs/images/general-zh-CN.png" alt="右键菜单助手通用界面" width="820">
 </p>
 
 <p align="center">
-  <img src="docs/images/settings-zh-CN.png" alt="右键菜单助手设置界面" width="820">
+  <img src="docs/images/actions-zh-CN.png" alt="右键菜单助手快捷功能界面" width="820">
 </p>
 
 ## 系统要求
@@ -84,15 +84,9 @@ open build/Build/Products/Release/RightMenuMini.app
 
 未授权时，App 内所有功能开关会显示为关闭并禁用；授权后会恢复默认或已保存的设置。
 
-## 更新
-
-macOS 不能替换正在运行的 `.app` 包。更新 `/Applications` 中的旧版本前，请先从菜单栏退出右键菜单助手。
-
-`dist/` 中的安装包不会提交到 Git。正式分发建议使用 GitHub Releases 上传 zip。
-
 ## 说明
 
-- 当前版本：`0.1.1`。
+- 当前版本：`0.1.2`。
 - 当前分发版本尚未公证。其他用户安装时，可能需要在 macOS 安全设置中手动允许打开。
 
 ## 许可证

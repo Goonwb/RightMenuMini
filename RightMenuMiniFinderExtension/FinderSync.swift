@@ -88,6 +88,7 @@ private enum RightMenuMiniPreferences {
         return values
     }
 
+
     static func bool(_ key: String, in values: [String: Bool]) -> Bool {
         values[key] ?? defaultValues[key] ?? false
     }
@@ -165,7 +166,8 @@ private enum MenuText {
         case RightMenuMiniPreferences.chineseValue:
             return false
         default:
-            return Locale.preferredLanguages.first?.lowercased().hasPrefix("en") == true
+            let preferredLanguage = Locale.preferredLanguages.first?.lowercased() ?? ""
+            return !preferredLanguage.hasPrefix("zh")
         }
     }
 

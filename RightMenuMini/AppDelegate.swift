@@ -116,7 +116,8 @@ private enum AppText {
         case RightMenuMiniPreferences.chineseValue:
             return false
         default:
-            return Locale.preferredLanguages.first?.lowercased().hasPrefix("en") == true
+            let preferredLanguage = Locale.preferredLanguages.first?.lowercased() ?? ""
+            return !preferredLanguage.hasPrefix("zh")
         }
     }
 
@@ -128,24 +129,24 @@ private enum AppText {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private enum SidebarTab {
-        case overview
-        case settings
+        case general
+        case actions
 
         var identifier: String {
             switch self {
-            case .overview:
-                return "overview"
-            case .settings:
-                return "settings"
+            case .general:
+                return "general"
+            case .actions:
+                return "actions"
             }
         }
 
         static func from(identifier: String) -> SidebarTab? {
             switch identifier {
-            case "overview":
-                return .overview
-            case "settings":
-                return .settings
+            case "general":
+                return .general
+            case "actions":
+                return .actions
             default:
                 return nil
             }
@@ -162,7 +163,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusMenuAuthorizationItem: NSMenuItem?
     private var receivedActionURL = false
     private let preferences = RightMenuMiniPreferences.store()
-    private var currentTab: SidebarTab = .overview
+    private var currentTab: SidebarTab = .general
     private var contentContainer: NSView?
     private var sidebarButtons: [SidebarTab: NSButton] = [:]
     private var preferenceSwitches: [String: NSSwitch] = [:]
@@ -176,11 +177,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var authorizationTitleLabel: NSTextField?
     private var authorizationDetailLabel: NSTextField?
     private var authorizationButton: NSButton?
-    private var sidebarTitleLabel: NSTextField?
-    private var sidebarVersionLabel: NSTextField?
     private var updateStatusLabel: NSTextField?
     private var updateCheckButton: NSButton?
     private var latestReleasePageURL: URL?
+    private var flatLayoutCard: LayoutOptionCard?
+    private var groupedLayoutCard: LayoutOptionCard?
+    private var sidebarBrandLabel: NSTextField?
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         NSAppleEventManager.shared().setEventHandler(
@@ -233,7 +235,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func buildWindow() {
         applyAppearancePreference()
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 824, height: 570),
+            contentRect: NSRect(x: 0, y: 0, width: 821, height: 620),
             styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -293,7 +295,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         self.window = window
         self.contentContainer = content
-        selectSidebarTab(.overview)
+        selectSidebarTab(.general)
         refreshAuthorizationStatus()
     }
 
@@ -382,13 +384,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         authorizationButton = nil
         updateStatusLabel = nil
         updateCheckButton = nil
+        flatLayoutCard = nil
+        groupedLayoutCard = nil
 
         let content: NSView
         switch tab {
-        case .overview:
-            content = overviewContentView()
-        case .settings:
-            content = settingsContentView()
+        case .general:
+            content = generalContentView()
+        case .actions:
+            content = actionsContentView()
         }
 
         content.translatesAutoresizingMaskIntoConstraints = false
@@ -414,63 +418,70 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         icon.image = applicationIconImage()
         icon.imageScaling = .scaleProportionallyUpOrDown
         icon.translatesAutoresizingMaskIntoConstraints = false
+        icon.wantsLayer = true
+        icon.layer?.shadowColor = NSColor.black.cgColor
+        icon.layer?.shadowOffset = CGSize(width: 0, height: -2.5)
+        icon.layer?.shadowRadius = 6.0
+        icon.layer?.shadowOpacity = 0.12
 
         let titleLabel = NSTextField(labelWithString: AppText.localized("右键菜单助手", "RightMenuMini"))
-        titleLabel.font = .systemFont(ofSize: 21, weight: .bold)
+        titleLabel.font = .systemFont(ofSize: 17, weight: .bold)
         titleLabel.textColor = .labelColor
         titleLabel.alignment = .center
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        self.sidebarBrandLabel = titleLabel
 
-        let versionLabel = NSTextField(labelWithString: versionDescription)
-        versionLabel.font = .systemFont(ofSize: 13)
+        let versionLabel = NSTextField(labelWithString: "v\(currentVersionString)")
+        versionLabel.font = .systemFont(ofSize: 11.5)
         versionLabel.textColor = .secondaryLabelColor
         versionLabel.alignment = .center
+        versionLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        let titleStack = NSStackView(views: [titleLabel, versionLabel])
-        titleStack.orientation = .vertical
-        titleStack.alignment = .centerX
-        titleStack.spacing = 5
-        titleStack.translatesAutoresizingMaskIntoConstraints = false
+        let brandStack = NSStackView(views: [titleLabel, versionLabel])
+        brandStack.orientation = .vertical
+        brandStack.alignment = .centerX
+        brandStack.spacing = 4
+        brandStack.translatesAutoresizingMaskIntoConstraints = false
 
-        let overviewButton = sidebarNavigationButton(symbol: "house", title: sidebarTitle(for: .overview), tab: .overview)
-        let settingsButton = sidebarNavigationButton(symbol: "gearshape", title: sidebarTitle(for: .settings), tab: .settings)
-        let navStack = NSStackView(views: [overviewButton, settingsButton])
+        let generalButton = sidebarNavigationButton(symbol: "gearshape", title: sidebarTitle(for: .general), tab: .general)
+        let actionsButton = sidebarNavigationButton(symbol: "contextualmenu.and.cursorarrow", title: sidebarTitle(for: .actions), tab: .actions)
+
+        let navStack = NSStackView(views: [generalButton, actionsButton])
         navStack.orientation = .vertical
         navStack.alignment = .width
         navStack.spacing = 8
         navStack.translatesAutoresizingMaskIntoConstraints = false
 
         sidebar.addSubview(icon)
-        sidebar.addSubview(titleStack)
+        sidebar.addSubview(brandStack)
         sidebar.addSubview(navStack)
 
         NSLayoutConstraint.activate([
-            icon.topAnchor.constraint(equalTo: sidebar.topAnchor, constant: 86),
+            icon.topAnchor.constraint(equalTo: sidebar.topAnchor, constant: 60),
             icon.centerXAnchor.constraint(equalTo: sidebar.centerXAnchor),
-            icon.widthAnchor.constraint(equalToConstant: 88),
-            icon.heightAnchor.constraint(equalToConstant: 88),
+            icon.widthAnchor.constraint(equalToConstant: 72),
+            icon.heightAnchor.constraint(equalToConstant: 72),
 
-            titleStack.topAnchor.constraint(equalTo: icon.bottomAnchor, constant: 20),
-            titleStack.leadingAnchor.constraint(equalTo: sidebar.leadingAnchor, constant: 24),
-            titleStack.trailingAnchor.constraint(equalTo: sidebar.trailingAnchor, constant: -24),
+            brandStack.topAnchor.constraint(equalTo: icon.bottomAnchor, constant: 14),
+            brandStack.leadingAnchor.constraint(equalTo: sidebar.leadingAnchor, constant: 18),
+            brandStack.trailingAnchor.constraint(equalTo: sidebar.trailingAnchor, constant: -18),
 
-            navStack.topAnchor.constraint(equalTo: titleStack.bottomAnchor, constant: 34),
+            navStack.topAnchor.constraint(equalTo: brandStack.bottomAnchor, constant: 28),
             navStack.leadingAnchor.constraint(equalTo: sidebar.leadingAnchor, constant: 18),
             navStack.trailingAnchor.constraint(equalTo: sidebar.trailingAnchor, constant: -18),
-            overviewButton.widthAnchor.constraint(equalTo: navStack.widthAnchor),
-            settingsButton.widthAnchor.constraint(equalTo: navStack.widthAnchor)
+            generalButton.widthAnchor.constraint(equalTo: navStack.widthAnchor),
+            actionsButton.widthAnchor.constraint(equalTo: navStack.widthAnchor)
         ])
 
-        sidebarTitleLabel = titleLabel
-        sidebarVersionLabel = versionLabel
         return sidebar
     }
 
     private func sidebarTitle(for tab: SidebarTab) -> String {
         switch tab {
-        case .overview:
-            return AppText.localized("概览", "Overview")
-        case .settings:
-            return AppText.localized("设置", "Settings")
+        case .general:
+            return AppText.localized("通用", "General")
+        case .actions:
+            return AppText.localized("快捷功能", "Actions")
         }
     }
 
@@ -499,10 +510,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         NSLayoutConstraint.activate([
             button.heightAnchor.constraint(equalToConstant: 36),
+
             icon.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: 14),
             icon.centerYAnchor.constraint(equalTo: button.centerYAnchor),
             icon.widthAnchor.constraint(equalToConstant: 20),
             icon.heightAnchor.constraint(equalToConstant: 20),
+
             label.leadingAnchor.constraint(equalTo: icon.trailingAnchor, constant: 10),
             label.centerYAnchor.constraint(equalTo: button.centerYAnchor),
             label.trailingAnchor.constraint(lessThanOrEqualTo: button.trailingAnchor, constant: -12)
@@ -523,74 +536,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return NSApp.applicationIconImage
     }
 
-    private func overviewContentView() -> NSView {
-        let authorization = authorizationCard()
-        let statusSection = sectionTitle(AppText.localized("快速状态", "Quick Status"))
-        let statusCards = statusCardsPanel()
-        let featuresSection = sectionTitle(AppText.localized("快捷功能", "Quick Actions"))
-        let featuresPanel = featureSettingsPanel()
+    private func generalContentView() -> NSView {
+        let statusSection = sectionTitle(AppText.localized("服务与状态", "Service & Status"))
 
-        let stack = NSStackView(views: [
-            authorization,
-            statusSection,
-            statusCards,
-            featuresSection,
-            featuresPanel
-        ])
-        stack.orientation = .vertical
-        stack.alignment = .width
-        stack.spacing = 0
-        stack.setCustomSpacing(24, after: authorization)
-        stack.setCustomSpacing(10, after: statusSection)
-        stack.setCustomSpacing(24, after: statusCards)
-        stack.setCustomSpacing(10, after: featuresSection)
-        stack.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            stack.widthAnchor.constraint(equalToConstant: contentWidth)
-        ])
-
-        return stack
-    }
-
-    private func sectionTitle(_ title: String) -> NSView {
-        let label = NSTextField(labelWithString: title)
-        label.font = .systemFont(ofSize: 14, weight: .semibold)
-        label.textColor = .secondaryLabelColor
-        label.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            label.widthAnchor.constraint(equalToConstant: contentWidth),
-            label.heightAnchor.constraint(equalToConstant: 20)
-        ])
-
-        return label
-    }
-
-    private func settingsContentView() -> NSView {
-        let versionRow = settingsButtonRow(
-            symbol: "info.circle",
-            title: AppText.localized("当前版本", "Current Version"),
-            detail: AppText.localized("\(versionDescription) · 可检查 GitHub Releases", "\(versionDescription) · Check GitHub Releases"),
-            buttonTitle: AppText.localized("检查", "Check"),
-            action: #selector(checkForUpdates)
-        )
-        updateStatusLabel = versionRow.detailLabel
-        updateCheckButton = versionRow.button
-
-        let githubRow = settingsButtonRow(
-            symbol: "globe",
-            title: "GitHub",
-            detail: "github.com/Goonwb/RightMenuMini",
-            buttonTitle: AppText.localized("前往", "Visit"),
-            action: #selector(openGitHubProfile)
-        )
-
-        let projectSection = sectionTitle(AppText.localized("项目", "Project"))
-        let projectPanel = settingsPanel(rows: [
-            versionRow.row,
-            githubRow.row
-        ])
+        let authRow = authorizationRow()
+        let menuRow = statusToggleRow()
+        let statusPanel = settingsPanel(rows: [authRow, menuRow])
 
         let preferencesSection = sectionTitle(AppText.localized("偏好", "Preferences"))
         let preferencesPanel = settingsPanel(rows: [
@@ -620,7 +571,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             )
         ])
 
+        let versionRow = settingsVersionRow(
+            symbol: "info.circle",
+            title: AppText.localized("当前版本", "Current Version"),
+            version: currentVersionString,
+            detail: AppText.localized("可检查最新版本与发布日志", "Check latest version and release notes"),
+            buttonTitle: AppText.localized("检查", "Check"),
+            action: #selector(checkForUpdates)
+        )
+        updateStatusLabel = versionRow.detailLabel
+        updateCheckButton = versionRow.button
+
+        let githubRow = settingsButtonRow(
+            symbol: "github",
+            title: "GitHub",
+            detail: "github.com/Goonwb/RightMenuMini",
+            buttonTitle: AppText.localized("前往", "Visit"),
+            action: #selector(openGitHubProfile)
+        )
+
+        let projectSection = sectionTitle(AppText.localized("关于", "About"))
+        let projectPanel = settingsPanel(rows: [
+            versionRow.row,
+            githubRow.row
+        ])
+
         let stack = NSStackView(views: [
+            statusSection,
+            statusPanel,
             preferencesSection,
             preferencesPanel,
             projectSection,
@@ -629,6 +607,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         stack.orientation = .vertical
         stack.alignment = .width
         stack.spacing = 0
+        stack.setCustomSpacing(10, after: statusSection)
+        stack.setCustomSpacing(24, after: statusPanel)
         stack.setCustomSpacing(10, after: preferencesSection)
         stack.setCustomSpacing(24, after: preferencesPanel)
         stack.setCustomSpacing(10, after: projectSection)
@@ -641,6 +621,103 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return stack
     }
 
+    private func actionsContentView() -> NSView {
+        let layoutSection = sectionTitle(AppText.localized("菜单布局", "Menu Layout"))
+
+        let flatCard = LayoutOptionCard(
+            symbol: "list.bullet",
+            title: AppText.localized("平铺显示", "Flat Layout"),
+            detail: AppText.localized("直接显示三项功能", "Show actions directly")
+        )
+        flatCard.target = self
+        flatCard.action = #selector(flatLayoutSelected(_:))
+        self.flatLayoutCard = flatCard
+
+        let groupedCard = LayoutOptionCard(
+            symbol: "rectangle.stack",
+            title: AppText.localized("折叠显示", "Grouped Layout"),
+            detail: AppText.localized("三项功能集合显示", "Show actions in a submenu")
+        )
+        groupedCard.target = self
+        groupedCard.action = #selector(groupedLayoutSelected(_:))
+        self.groupedLayoutCard = groupedCard
+
+        let layoutStack = NSStackView(views: [flatCard, groupedCard])
+        layoutStack.orientation = .horizontal
+        layoutStack.distribution = .fillEqually
+        layoutStack.spacing = 12
+        layoutStack.translatesAutoresizingMaskIntoConstraints = false
+
+        let featuresSection = sectionTitle(AppText.localized("快捷功能", "Quick Actions"))
+
+        let rows = [
+            preferenceRow(
+                symbol: "doc.badge.plus",
+                title: AppText.localized("新建 Text", "New Text"),
+                detail: AppText.localized("在当前位置创建 Untitled.txt", "Create Untitled.txt here"),
+                key: RightMenuMiniPreferences.isNewTextEnabled
+            ),
+            preferenceRow(
+                symbol: "terminal",
+                title: AppText.localized("进入终端", "Open Terminal"),
+                detail: AppText.localized("从当前位置打开 Terminal", "Open Terminal at this location"),
+                key: RightMenuMiniPreferences.isTerminalEnabled
+            ),
+            preferenceRow(
+                symbol: "doc.on.doc",
+                title: AppText.localized("拷贝路径", "Copy Path"),
+                detail: AppText.localized("复制所选项目或当前文件夹路径", "Copy selected paths or current folder"),
+                key: RightMenuMiniPreferences.isCopyPathEnabled
+            )
+        ]
+
+        let featuresPanel = settingsPanel(rows: rows)
+
+        let stack = NSStackView(views: [
+            layoutSection,
+            layoutStack,
+            featuresSection,
+            featuresPanel
+        ])
+        stack.orientation = .vertical
+        stack.alignment = .width
+        stack.spacing = 0
+        stack.setCustomSpacing(10, after: layoutSection)
+        stack.setCustomSpacing(24, after: layoutStack)
+        stack.setCustomSpacing(10, after: featuresSection)
+        stack.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            stack.widthAnchor.constraint(equalToConstant: contentWidth),
+            layoutStack.widthAnchor.constraint(equalToConstant: contentWidth),
+            layoutStack.heightAnchor.constraint(equalToConstant: 72)
+        ])
+
+        return stack
+    }
+
+    private func sectionTitle(_ title: String) -> NSView {
+        let container = NSView()
+        container.translatesAutoresizingMaskIntoConstraints = false
+
+        let label = NSTextField(labelWithString: title)
+        label.font = .systemFont(ofSize: 14.5, weight: .bold)
+        label.textColor = .secondaryLabelColor
+        label.translatesAutoresizingMaskIntoConstraints = false
+
+        container.addSubview(label)
+
+        NSLayoutConstraint.activate([
+            container.widthAnchor.constraint(equalToConstant: contentWidth),
+            container.heightAnchor.constraint(equalToConstant: 26),
+
+            label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 6),
+            label.centerYAnchor.constraint(equalTo: container.centerYAnchor)
+        ])
+
+        return container
+    }
+
     private func settingsButtonRow(
         symbol: String,
         title: String,
@@ -651,29 +728,39 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let row = NSView()
         row.translatesAutoresizingMaskIntoConstraints = false
 
+        let color = iconColor(forSymbol: symbol)
         let iconTile = NSView()
         iconTile.translatesAutoresizingMaskIntoConstraints = false
         iconTile.wantsLayer = true
         iconTile.layer?.cornerRadius = 11
         iconTile.layer?.cornerCurve = .continuous
-        iconTile.layer?.backgroundColor = iconTileBackgroundColor.cgColor
+        iconTile.layer?.backgroundColor = tintBackgroundColor(for: color).cgColor
 
         let icon = NSImageView()
-        icon.image = NSImage(systemSymbolName: symbol, accessibilityDescription: title)
+        if symbol == "github" {
+            if let image = NSImage(named: "github") {
+                image.isTemplate = true
+                icon.image = image
+            } else {
+                icon.image = NSImage(systemSymbolName: "globe", accessibilityDescription: title)
+            }
+        } else {
+            icon.image = NSImage(systemSymbolName: symbol, accessibilityDescription: title)
+        }
         icon.symbolConfiguration = .init(pointSize: 18, weight: .semibold)
-        icon.contentTintColor = .secondaryLabelColor
+        icon.contentTintColor = color
         icon.translatesAutoresizingMaskIntoConstraints = false
         iconTile.addSubview(icon)
 
         let titleLabel = NSTextField(labelWithString: title)
-        titleLabel.font = .systemFont(ofSize: 15, weight: .semibold)
+        titleLabel.font = .systemFont(ofSize: 13.5, weight: .semibold)
         titleLabel.textColor = .labelColor
         titleLabel.lineBreakMode = .byTruncatingTail
         titleLabel.maximumNumberOfLines = 1
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         let detailLabel = NSTextField(labelWithString: detail)
-        detailLabel.font = .systemFont(ofSize: 13)
+        detailLabel.font = .systemFont(ofSize: 11.5)
         detailLabel.textColor = .secondaryLabelColor
         detailLabel.lineBreakMode = .byTruncatingMiddle
         detailLabel.maximumNumberOfLines = 1
@@ -714,6 +801,203 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return (row, detailLabel, button)
     }
 
+    private func settingsVersionRow(
+        symbol: String,
+        title: String,
+        version: String,
+        detail: String,
+        buttonTitle: String,
+        action: Selector
+    ) -> (row: NSView, detailLabel: NSTextField, button: NSButton) {
+        let row = NSView()
+        row.translatesAutoresizingMaskIntoConstraints = false
+
+        let color = iconColor(forSymbol: symbol)
+        let iconTile = NSView()
+        iconTile.translatesAutoresizingMaskIntoConstraints = false
+        iconTile.wantsLayer = true
+        iconTile.layer?.cornerRadius = 11
+        iconTile.layer?.cornerCurve = .continuous
+        iconTile.layer?.backgroundColor = tintBackgroundColor(for: color).cgColor
+
+        let icon = NSImageView()
+        icon.image = NSImage(systemSymbolName: symbol, accessibilityDescription: title)
+        icon.symbolConfiguration = .init(pointSize: 18, weight: .semibold)
+        icon.contentTintColor = color
+        icon.translatesAutoresizingMaskIntoConstraints = false
+        iconTile.addSubview(icon)
+
+        let titleLabel = NSTextField(labelWithString: title)
+        titleLabel.font = .systemFont(ofSize: 13.5, weight: .semibold)
+        titleLabel.textColor = .labelColor
+        titleLabel.lineBreakMode = .byTruncatingTail
+        titleLabel.maximumNumberOfLines = 1
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        // Version badge
+        let badge = NSView()
+        badge.translatesAutoresizingMaskIntoConstraints = false
+        badge.wantsLayer = true
+        badge.layer?.cornerRadius = 5
+        badge.layer?.cornerCurve = .continuous
+        badge.layer?.backgroundColor = NSColor.systemGreen.withAlphaComponent(usesDarkAppearance ? 0.16 : 0.08).cgColor
+        badge.layer?.borderWidth = 0.5
+        badge.layer?.borderColor = NSColor.systemGreen.withAlphaComponent(usesDarkAppearance ? 0.3 : 0.15).cgColor
+
+        let badgeLabel = NSTextField(labelWithString: version)
+        badgeLabel.font = .systemFont(ofSize: 10.5, weight: .bold)
+        badgeLabel.textColor = .systemGreen
+        badgeLabel.translatesAutoresizingMaskIntoConstraints = false
+        badge.addSubview(badgeLabel)
+
+        NSLayoutConstraint.activate([
+            badgeLabel.leadingAnchor.constraint(equalTo: badge.leadingAnchor, constant: 6),
+            badgeLabel.trailingAnchor.constraint(equalTo: badge.trailingAnchor, constant: -6),
+            badgeLabel.topAnchor.constraint(equalTo: badge.topAnchor, constant: 1.5),
+            badgeLabel.bottomAnchor.constraint(equalTo: badge.bottomAnchor, constant: -1.5)
+        ])
+
+        let detailLabel = NSTextField(labelWithString: detail)
+        detailLabel.font = .systemFont(ofSize: 11.5)
+        detailLabel.textColor = .secondaryLabelColor
+        detailLabel.lineBreakMode = .byTruncatingMiddle
+        detailLabel.maximumNumberOfLines = 1
+        detailLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        let button = NSButton(title: buttonTitle, target: self, action: action)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.bezelStyle = .rounded
+        button.controlSize = .regular
+
+        row.addSubview(iconTile)
+        row.addSubview(titleLabel)
+        row.addSubview(badge)
+        row.addSubview(detailLabel)
+        row.addSubview(button)
+
+        NSLayoutConstraint.activate([
+            row.heightAnchor.constraint(equalToConstant: 64),
+
+            iconTile.leadingAnchor.constraint(equalTo: row.leadingAnchor, constant: 18),
+            iconTile.centerYAnchor.constraint(equalTo: row.centerYAnchor),
+            iconTile.widthAnchor.constraint(equalToConstant: 38),
+            iconTile.heightAnchor.constraint(equalToConstant: 38),
+
+            icon.centerXAnchor.constraint(equalTo: iconTile.centerXAnchor),
+            icon.centerYAnchor.constraint(equalTo: iconTile.centerYAnchor),
+            icon.widthAnchor.constraint(equalToConstant: 22),
+            icon.heightAnchor.constraint(equalToConstant: 22),
+
+            titleLabel.leadingAnchor.constraint(equalTo: iconTile.trailingAnchor, constant: 16),
+            titleLabel.topAnchor.constraint(equalTo: row.topAnchor, constant: 13),
+
+            badge.leadingAnchor.constraint(equalTo: titleLabel.trailingAnchor, constant: 8),
+            badge.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+            badge.trailingAnchor.constraint(lessThanOrEqualTo: button.leadingAnchor, constant: -12),
+
+            detailLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            detailLabel.trailingAnchor.constraint(lessThanOrEqualTo: button.leadingAnchor, constant: -12),
+            detailLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 5),
+
+            button.trailingAnchor.constraint(equalTo: row.trailingAnchor, constant: -18),
+            button.centerYAnchor.constraint(equalTo: row.centerYAnchor),
+            button.heightAnchor.constraint(equalToConstant: 30),
+            button.widthAnchor.constraint(greaterThanOrEqualToConstant: 72)
+        ])
+
+        return (row, detailLabel, button)
+    }
+
+    private func settingsLinkRow(
+        symbol: String,
+        title: String,
+        detail: String,
+        action: Selector
+    ) -> NSView {
+        let row = ClickableRowView()
+        row.translatesAutoresizingMaskIntoConstraints = false
+        row.target = self
+        row.action = action
+
+        let color = iconColor(forSymbol: symbol)
+        let iconTile = NSView()
+        iconTile.translatesAutoresizingMaskIntoConstraints = false
+        iconTile.wantsLayer = true
+        iconTile.layer?.cornerRadius = 11
+        iconTile.layer?.cornerCurve = .continuous
+        iconTile.layer?.backgroundColor = tintBackgroundColor(for: color).cgColor
+
+        let icon = NSImageView()
+        if symbol == "github" {
+            if let image = NSImage(named: "github") {
+                image.isTemplate = true
+                icon.image = image
+            } else {
+                icon.image = NSImage(systemSymbolName: "globe", accessibilityDescription: title)
+            }
+        } else {
+            icon.image = NSImage(systemSymbolName: symbol, accessibilityDescription: title)
+        }
+        icon.symbolConfiguration = .init(pointSize: 18, weight: .semibold)
+        icon.contentTintColor = color
+        icon.translatesAutoresizingMaskIntoConstraints = false
+        iconTile.addSubview(icon)
+
+        let titleLabel = NSTextField(labelWithString: title)
+        titleLabel.font = .systemFont(ofSize: 13.5, weight: .semibold)
+        titleLabel.textColor = .labelColor
+        titleLabel.lineBreakMode = .byTruncatingTail
+        titleLabel.maximumNumberOfLines = 1
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        let detailLabel = NSTextField(labelWithString: detail)
+        detailLabel.font = .systemFont(ofSize: 11.5)
+        detailLabel.textColor = .secondaryLabelColor
+        detailLabel.lineBreakMode = .byTruncatingMiddle
+        detailLabel.maximumNumberOfLines = 1
+        detailLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        let chevron = NSImageView()
+        chevron.image = NSImage(systemSymbolName: "chevron.right", accessibilityDescription: "")
+        chevron.symbolConfiguration = .init(pointSize: 12, weight: .bold)
+        chevron.contentTintColor = .tertiaryLabelColor
+        chevron.translatesAutoresizingMaskIntoConstraints = false
+
+        row.addSubview(iconTile)
+        row.addSubview(titleLabel)
+        row.addSubview(detailLabel)
+        row.addSubview(chevron)
+
+        NSLayoutConstraint.activate([
+            row.heightAnchor.constraint(equalToConstant: 64),
+
+            iconTile.leadingAnchor.constraint(equalTo: row.leadingAnchor, constant: 18),
+            iconTile.centerYAnchor.constraint(equalTo: row.centerYAnchor),
+            iconTile.widthAnchor.constraint(equalToConstant: 38),
+            iconTile.heightAnchor.constraint(equalToConstant: 38),
+
+            icon.centerXAnchor.constraint(equalTo: iconTile.centerXAnchor),
+            icon.centerYAnchor.constraint(equalTo: iconTile.centerYAnchor),
+            icon.widthAnchor.constraint(equalToConstant: 22),
+            icon.heightAnchor.constraint(equalToConstant: 22),
+
+            titleLabel.leadingAnchor.constraint(equalTo: iconTile.trailingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: chevron.leadingAnchor, constant: -12),
+            titleLabel.topAnchor.constraint(equalTo: row.topAnchor, constant: 13),
+
+            detailLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            detailLabel.trailingAnchor.constraint(lessThanOrEqualTo: chevron.leadingAnchor, constant: -12),
+            detailLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 5),
+
+            chevron.trailingAnchor.constraint(equalTo: row.trailingAnchor, constant: -22),
+            chevron.centerYAnchor.constraint(equalTo: row.centerYAnchor),
+            chevron.widthAnchor.constraint(equalToConstant: 12),
+            chevron.heightAnchor.constraint(equalToConstant: 12)
+        ])
+
+        return row
+    }
+
     private func settingsPopUpRow(
         symbol: String,
         title: String,
@@ -725,29 +1009,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let row = NSView()
         row.translatesAutoresizingMaskIntoConstraints = false
 
+        let color = iconColor(forSymbol: symbol)
         let iconTile = NSView()
         iconTile.translatesAutoresizingMaskIntoConstraints = false
         iconTile.wantsLayer = true
         iconTile.layer?.cornerRadius = 11
         iconTile.layer?.cornerCurve = .continuous
-        iconTile.layer?.backgroundColor = iconTileBackgroundColor.cgColor
+        iconTile.layer?.backgroundColor = tintBackgroundColor(for: color).cgColor
 
         let icon = NSImageView()
         icon.image = NSImage(systemSymbolName: symbol, accessibilityDescription: title)
         icon.symbolConfiguration = .init(pointSize: 18, weight: .semibold)
-        icon.contentTintColor = .secondaryLabelColor
+        icon.contentTintColor = color
         icon.translatesAutoresizingMaskIntoConstraints = false
         iconTile.addSubview(icon)
 
         let titleLabel = NSTextField(labelWithString: title)
-        titleLabel.font = .systemFont(ofSize: 15, weight: .semibold)
+        titleLabel.font = .systemFont(ofSize: 13.5, weight: .semibold)
         titleLabel.textColor = .labelColor
         titleLabel.lineBreakMode = .byTruncatingTail
         titleLabel.maximumNumberOfLines = 1
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         let detailLabel = NSTextField(labelWithString: detail)
-        detailLabel.font = .systemFont(ofSize: 13)
+        detailLabel.font = .systemFont(ofSize: 11.5)
         detailLabel.textColor = .secondaryLabelColor
         detailLabel.lineBreakMode = .byTruncatingTail
         detailLabel.maximumNumberOfLines = 1
@@ -799,29 +1084,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return row
     }
 
-    private func authorizationCard() -> NSView {
-        let card = plainCard(height: 96, cornerRadius: 12, fixedWidth: contentWidth)
+    private func authorizationRow() -> NSView {
+        let row = NSView()
+        row.translatesAutoresizingMaskIntoConstraints = false
 
         let iconTile = NSView()
         iconTile.translatesAutoresizingMaskIntoConstraints = false
         iconTile.wantsLayer = true
         iconTile.layer?.cornerRadius = 11
-        iconTile.layer?.backgroundColor = iconTileBackgroundColor.cgColor
+        iconTile.layer?.cornerCurve = .continuous
 
         let icon = NSImageView()
-        icon.symbolConfiguration = .init(pointSize: 24, weight: .semibold)
+        icon.symbolConfiguration = .init(pointSize: 18, weight: .semibold)
         icon.translatesAutoresizingMaskIntoConstraints = false
         iconTile.addSubview(icon)
 
         let titleLabel = NSTextField(labelWithString: "")
-        titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
+        titleLabel.font = .systemFont(ofSize: 13.5, weight: .semibold)
         titleLabel.textColor = .labelColor
         titleLabel.lineBreakMode = .byTruncatingTail
+        titleLabel.maximumNumberOfLines = 1
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         let detailLabel = NSTextField(labelWithString: "")
-        detailLabel.font = .systemFont(ofSize: 13)
+        detailLabel.font = .systemFont(ofSize: 11.5)
         detailLabel.textColor = .secondaryLabelColor
         detailLabel.lineBreakMode = .byTruncatingTail
+        detailLabel.maximumNumberOfLines = 1
+        detailLabel.translatesAutoresizingMaskIntoConstraints = false
 
         let textStack = NSStackView(views: [titleLabel, detailLabel])
         textStack.orientation = .vertical
@@ -830,32 +1120,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         textStack.translatesAutoresizingMaskIntoConstraints = false
 
         let button = primaryButton(
-            title: AppText.localized("初次授权", "Authorize"),
+            title: AppText.localized("授权", "Authorize"),
             symbol: "checkmark.shield",
             action: #selector(openExtensionSettings)
         )
-        button.controlSize = .large
 
-        card.addSubview(iconTile)
-        card.addSubview(textStack)
-        card.addSubview(button)
+        row.addSubview(iconTile)
+        row.addSubview(textStack)
+        row.addSubview(button)
 
         NSLayoutConstraint.activate([
-            iconTile.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 22),
-            iconTile.centerYAnchor.constraint(equalTo: card.centerYAnchor),
-            iconTile.widthAnchor.constraint(equalToConstant: 44),
-            iconTile.heightAnchor.constraint(equalToConstant: 44),
+            row.heightAnchor.constraint(equalToConstant: 64),
+            iconTile.leadingAnchor.constraint(equalTo: row.leadingAnchor, constant: 18),
+            iconTile.centerYAnchor.constraint(equalTo: row.centerYAnchor),
+            iconTile.widthAnchor.constraint(equalToConstant: 38),
+            iconTile.heightAnchor.constraint(equalToConstant: 38),
+
             icon.centerXAnchor.constraint(equalTo: iconTile.centerXAnchor),
             icon.centerYAnchor.constraint(equalTo: iconTile.centerYAnchor),
-            icon.widthAnchor.constraint(equalToConstant: 26),
-            icon.heightAnchor.constraint(equalToConstant: 26),
+            icon.widthAnchor.constraint(equalToConstant: 22),
+            icon.heightAnchor.constraint(equalToConstant: 22),
+
             textStack.leadingAnchor.constraint(equalTo: iconTile.trailingAnchor, constant: 16),
             textStack.trailingAnchor.constraint(lessThanOrEqualTo: button.leadingAnchor, constant: -12),
-            textStack.centerYAnchor.constraint(equalTo: card.centerYAnchor),
-            button.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -18),
-            button.centerYAnchor.constraint(equalTo: card.centerYAnchor),
-            button.heightAnchor.constraint(equalToConstant: 34),
-            button.widthAnchor.constraint(greaterThanOrEqualToConstant: 112)
+            textStack.centerYAnchor.constraint(equalTo: row.centerYAnchor),
+
+            button.trailingAnchor.constraint(equalTo: row.trailingAnchor, constant: -18),
+            button.centerYAnchor.constraint(equalTo: row.centerYAnchor),
+            button.heightAnchor.constraint(equalToConstant: 30),
+            button.widthAnchor.constraint(greaterThanOrEqualToConstant: 72)
         ])
 
         authorizationIconView = icon
@@ -864,63 +1157,43 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         authorizationDetailLabel = detailLabel
         authorizationButton = button
 
-        return card
+        return row
     }
 
-    private func statusCardsPanel() -> NSView {
-        let menuCard = statusToggleCard(
-            symbol: "power",
-            title: AppText.localized("右键菜单", "Context Menu"),
-            detail: AppText.localized("控制 Finder 菜单入口", "Control the Finder menu entry"),
-            key: RightMenuMiniPreferences.isMenuEnabled
-        )
-        let groupCard = statusToggleCard(
-            symbol: "rectangle.stack",
-            title: AppText.localized("折叠显示", "Grouped Menu"),
-            detail: AppText.localized("三项功能集合显示", "Show actions in a submenu"),
-            key: RightMenuMiniPreferences.isGroupedMenuEnabled
-        )
+    private func statusToggleRow() -> NSView {
+        let row = NSView()
+        row.translatesAutoresizingMaskIntoConstraints = false
 
-        let stack = NSStackView(views: [menuCard, groupCard])
-        stack.orientation = .horizontal
-        stack.alignment = .height
-        stack.distribution = .fillEqually
-        stack.spacing = 18
-        stack.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            stack.widthAnchor.constraint(equalToConstant: contentWidth),
-            stack.heightAnchor.constraint(equalToConstant: 78)
-        ])
-
-        return stack
-    }
-
-    private func statusToggleCard(symbol: String, title: String, detail: String, key: String) -> NSView {
-        let card = plainCard(height: 78, cornerRadius: 14, fixedWidth: nil)
+        let key = RightMenuMiniPreferences.isMenuEnabled
+        let color = NSColor.systemBlue
 
         let iconTile = NSView()
         iconTile.translatesAutoresizingMaskIntoConstraints = false
         iconTile.wantsLayer = true
-        iconTile.layer?.cornerRadius = 12
-        iconTile.layer?.backgroundColor = iconTileBackgroundColor.cgColor
+        iconTile.layer?.cornerRadius = 11
+        iconTile.layer?.cornerCurve = .continuous
+        iconTile.layer?.backgroundColor = tintBackgroundColor(for: color).cgColor
 
         let icon = NSImageView()
-        icon.image = NSImage(systemSymbolName: symbol, accessibilityDescription: title)
-        icon.symbolConfiguration = .init(pointSize: 22, weight: .semibold)
-        icon.contentTintColor = .secondaryLabelColor
+        icon.image = NSImage(systemSymbolName: "power", accessibilityDescription: AppText.localized("右键菜单", "Context Menu"))
+        icon.symbolConfiguration = .init(pointSize: 18, weight: .semibold)
+        icon.contentTintColor = color
         icon.translatesAutoresizingMaskIntoConstraints = false
         iconTile.addSubview(icon)
 
-        let titleLabel = NSTextField(labelWithString: title)
-        titleLabel.font = .systemFont(ofSize: 15, weight: .bold)
+        let titleLabel = NSTextField(labelWithString: AppText.localized("右键菜单服务", "Context Menu Service"))
+        titleLabel.font = .systemFont(ofSize: 13.5, weight: .semibold)
         titleLabel.textColor = .labelColor
         titleLabel.lineBreakMode = .byTruncatingTail
+        titleLabel.maximumNumberOfLines = 1
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        let detailLabel = NSTextField(labelWithString: detail)
-        detailLabel.font = .systemFont(ofSize: 12)
+        let detailLabel = NSTextField(labelWithString: "")
+        detailLabel.font = .systemFont(ofSize: 11.5)
         detailLabel.textColor = .secondaryLabelColor
         detailLabel.lineBreakMode = .byTruncatingTail
+        detailLabel.maximumNumberOfLines = 1
+        detailLabel.translatesAutoresizingMaskIntoConstraints = false
 
         let textStack = NSStackView(views: [titleLabel, detailLabel])
         textStack.orientation = .vertical
@@ -934,35 +1207,38 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         toggle.action = #selector(preferenceSwitchChanged(_:))
         toggle.controlSize = .regular
         toggle.translatesAutoresizingMaskIntoConstraints = false
+
+        row.addSubview(iconTile)
+        row.addSubview(textStack)
+        row.addSubview(toggle)
+
+        NSLayoutConstraint.activate([
+            row.heightAnchor.constraint(equalToConstant: 64),
+            iconTile.leadingAnchor.constraint(equalTo: row.leadingAnchor, constant: 18),
+            iconTile.centerYAnchor.constraint(equalTo: row.centerYAnchor),
+            iconTile.widthAnchor.constraint(equalToConstant: 38),
+            iconTile.heightAnchor.constraint(equalToConstant: 38),
+
+            icon.centerXAnchor.constraint(equalTo: iconTile.centerXAnchor),
+            icon.centerYAnchor.constraint(equalTo: iconTile.centerYAnchor),
+            icon.widthAnchor.constraint(equalToConstant: 22),
+            icon.heightAnchor.constraint(equalToConstant: 22),
+
+            textStack.leadingAnchor.constraint(equalTo: iconTile.trailingAnchor, constant: 16),
+            textStack.trailingAnchor.constraint(lessThanOrEqualTo: toggle.leadingAnchor, constant: -12),
+            textStack.centerYAnchor.constraint(equalTo: row.centerYAnchor),
+
+            toggle.trailingAnchor.constraint(equalTo: row.trailingAnchor, constant: -18),
+            toggle.centerYAnchor.constraint(equalTo: row.centerYAnchor)
+        ])
+
         preferenceSwitches[key] = toggle
-        preferenceRows[key] = card
+        preferenceRows[key] = row
         statusDetailLabels[key] = detailLabel
         preferenceIconViews[key] = icon
         preferenceIconTiles[key] = iconTile
 
-        card.addSubview(iconTile)
-        card.addSubview(textStack)
-        card.addSubview(toggle)
-
-        NSLayoutConstraint.activate([
-            iconTile.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 18),
-            iconTile.centerYAnchor.constraint(equalTo: card.centerYAnchor),
-            iconTile.widthAnchor.constraint(equalToConstant: 38),
-            iconTile.heightAnchor.constraint(equalToConstant: 38),
-            icon.centerXAnchor.constraint(equalTo: iconTile.centerXAnchor),
-            icon.centerYAnchor.constraint(equalTo: iconTile.centerYAnchor),
-            icon.widthAnchor.constraint(equalToConstant: 24),
-            icon.heightAnchor.constraint(equalToConstant: 24),
-
-            textStack.leadingAnchor.constraint(equalTo: iconTile.trailingAnchor, constant: 14),
-            textStack.centerYAnchor.constraint(equalTo: card.centerYAnchor),
-            textStack.trailingAnchor.constraint(lessThanOrEqualTo: toggle.leadingAnchor, constant: -12),
-
-            toggle.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
-            toggle.centerYAnchor.constraint(equalTo: card.centerYAnchor)
-        ])
-
-        return card
+        return row
     }
 
     private func featureSettingsPanel() -> NSView {
@@ -1022,7 +1298,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private var cardBackgroundColor: NSColor {
-        usesDarkAppearance ? NSColor(calibratedWhite: 0.18, alpha: 1) : .white
+        usesDarkAppearance ? NSColor(white: 0.13, alpha: 1.0) : .white
+    }
+
+    private var cardBorderColor: NSColor {
+        usesDarkAppearance ? NSColor(white: 1.0, alpha: 0.08) : NSColor(white: 0.0, alpha: 0.06)
+    }
+
+    private var cardShadowColor: NSColor {
+        .black
     }
 
     private var iconTileBackgroundColor: NSColor {
@@ -1030,17 +1314,42 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private var sidebarSelectionColor: NSColor {
-        NSColor.controlAccentColor.withAlphaComponent(usesDarkAppearance ? 0.18 : 0.12)
+        NSColor.controlAccentColor.withAlphaComponent(usesDarkAppearance ? 0.24 : 0.18)
     }
 
     private var separatorLayerColor: NSColor {
         usesDarkAppearance
-            ? NSColor.white.withAlphaComponent(0.14)
-            : NSColor.separatorColor.withAlphaComponent(0.22)
+            ? NSColor.white.withAlphaComponent(0.08)
+            : NSColor.separatorColor.withAlphaComponent(0.12)
     }
 
     private func tintBackgroundColor(for color: NSColor) -> NSColor {
-        color.withAlphaComponent(usesDarkAppearance ? 0.22 : 0.10)
+        color.withAlphaComponent(usesDarkAppearance ? 0.18 : 0.08)
+    }
+
+    private func iconColor(forSymbol symbol: String) -> NSColor {
+        switch symbol {
+        case "power":
+            return .systemBlue
+        case "rectangle.stack":
+            return .systemPurple
+        case "doc.badge.plus":
+            return .systemOrange
+        case "terminal":
+            return .systemTeal
+        case "doc.on.doc":
+            return .systemGreen
+        case "character.bubble":
+            return .systemBlue
+        case "circle.lefthalf.filled":
+            return .systemOrange
+        case "info.circle":
+            return .systemGreen
+        case "github":
+            return .labelColor
+        default:
+            return .controlAccentColor
+        }
     }
 
     private func plainCard(height: CGFloat, cornerRadius: CGFloat, fixedWidth: CGFloat?) -> NSView {
@@ -1050,8 +1359,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         view.layer?.cornerRadius = cornerRadius
         view.layer?.cornerCurve = .continuous
         view.layer?.backgroundColor = cardBackgroundColor.cgColor
-        view.layer?.borderWidth = 0
-        view.layer?.shadowOpacity = 0
+        view.layer?.borderWidth = 0.5
+        view.layer?.borderColor = cardBorderColor.cgColor
+
+        view.layer?.shadowColor = cardShadowColor.cgColor
+        view.layer?.shadowOffset = CGSize(width: 0, height: -2.5)
+        view.layer?.shadowRadius = 8.0
+        view.layer?.shadowOpacity = usesDarkAppearance ? 0.12 : 0.04
+        view.layer?.masksToBounds = false
 
         var constraints = [
             view.heightAnchor.constraint(equalToConstant: height)
@@ -1068,27 +1383,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let row = NSView()
         row.translatesAutoresizingMaskIntoConstraints = false
 
+        let color = iconColor(forSymbol: symbol)
         let iconTile = NSView()
         iconTile.translatesAutoresizingMaskIntoConstraints = false
         iconTile.wantsLayer = true
         iconTile.layer?.cornerRadius = 12
-        iconTile.layer?.backgroundColor = iconTileBackgroundColor.cgColor
+        iconTile.layer?.backgroundColor = tintBackgroundColor(for: color).cgColor
 
         let icon = NSImageView()
         icon.image = NSImage(systemSymbolName: symbol, accessibilityDescription: title)
         icon.symbolConfiguration = .init(pointSize: 20, weight: .semibold)
-        icon.contentTintColor = .controlAccentColor
+        icon.contentTintColor = color
         icon.translatesAutoresizingMaskIntoConstraints = false
         iconTile.addSubview(icon)
 
         let titleLabel = NSTextField(labelWithString: title)
-        titleLabel.font = .systemFont(ofSize: 15, weight: .bold)
+        titleLabel.font = .systemFont(ofSize: 13.5, weight: .semibold)
         titleLabel.textColor = .labelColor
         titleLabel.lineBreakMode = .byTruncatingTail
         titleLabel.maximumNumberOfLines = 1
 
         let detailLabel = NSTextField(labelWithString: detail)
-        detailLabel.font = .systemFont(ofSize: 13)
+        detailLabel.font = .systemFont(ofSize: 11.5)
         detailLabel.textColor = .secondaryLabelColor
         detailLabel.lineBreakMode = .byTruncatingTail
         detailLabel.maximumNumberOfLines = 1
@@ -1096,7 +1412,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let textStack = NSStackView(views: [titleLabel, detailLabel])
         textStack.orientation = .vertical
         textStack.alignment = .leading
-        textStack.spacing = 5
+        textStack.spacing = 4
         textStack.translatesAutoresizingMaskIntoConstraints = false
 
         let toggle = NSSwitch()
@@ -1108,6 +1424,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         toggle.toolTip = title
         preferenceSwitches[key] = toggle
         preferenceRows[key] = row
+        statusDetailLabels[key] = detailLabel
         preferenceIconViews[key] = icon
         preferenceIconTiles[key] = iconTile
 
@@ -1115,9 +1432,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         row.addSubview(textStack)
         row.addSubview(toggle)
 
-        NSLayoutConstraint.activate([
+        let constraints = [
             row.heightAnchor.constraint(equalToConstant: 64),
-            iconTile.leadingAnchor.constraint(equalTo: row.leadingAnchor, constant: 18),
             iconTile.centerYAnchor.constraint(equalTo: row.centerYAnchor),
             iconTile.widthAnchor.constraint(equalToConstant: 40),
             iconTile.heightAnchor.constraint(equalToConstant: 40),
@@ -1129,9 +1445,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             textStack.trailingAnchor.constraint(lessThanOrEqualTo: toggle.leadingAnchor, constant: -12),
             textStack.centerYAnchor.constraint(equalTo: row.centerYAnchor),
             toggle.trailingAnchor.constraint(equalTo: row.trailingAnchor, constant: -22),
-            toggle.centerYAnchor.constraint(equalTo: row.centerYAnchor)
-        ])
+            toggle.centerYAnchor.constraint(equalTo: row.centerYAnchor),
+            iconTile.leadingAnchor.constraint(equalTo: row.leadingAnchor, constant: 18)
+        ]
 
+        NSLayoutConstraint.activate(constraints)
         return row
     }
 
@@ -1222,8 +1540,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func refreshLocalizedInterface() {
         window?.title = AppText.localized("右键菜单助手", "RightMenuMini")
-        sidebarTitleLabel?.stringValue = AppText.localized("右键菜单助手", "RightMenuMini")
-        sidebarVersionLabel?.stringValue = versionDescription
+        sidebarBrandLabel?.stringValue = AppText.localized("右键菜单助手", "RightMenuMini")
 
         for (tab, button) in sidebarButtons {
             for subview in button.subviews {
@@ -1256,7 +1573,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         refreshPreferenceControls()
     }
 
+    @objc private func flatLayoutSelected(_ sender: LayoutOptionCard) {
+        guard finderExtensionEnabled && preferenceValue(for: RightMenuMiniPreferences.isMenuEnabled) else {
+            return
+        }
+        preferences.set(false, forKey: RightMenuMiniPreferences.isGroupedMenuEnabled)
+        preferences.synchronize()
+        RightMenuMiniPreferences.mirrorValues(from: preferences)
+        refreshPreferenceControls()
+    }
+
+    @objc private func groupedLayoutSelected(_ sender: LayoutOptionCard) {
+        guard finderExtensionEnabled && preferenceValue(for: RightMenuMiniPreferences.isMenuEnabled) else {
+            return
+        }
+        preferences.set(true, forKey: RightMenuMiniPreferences.isGroupedMenuEnabled)
+        preferences.synchronize()
+        RightMenuMiniPreferences.mirrorValues(from: preferences)
+        refreshPreferenceControls()
+    }
+
     private func refreshPreferenceControls() {
+        let menuEnabled = preferenceValue(for: RightMenuMiniPreferences.isMenuEnabled)
+        let isGrouped = preferenceValue(for: RightMenuMiniPreferences.isGroupedMenuEnabled)
+
+        flatLayoutCard?.isSelected = !isGrouped
+        groupedLayoutCard?.isSelected = isGrouped
+
+        if finderExtensionEnabled && menuEnabled {
+            flatLayoutCard?.alphaValue = 1.0
+            groupedLayoutCard?.alphaValue = 1.0
+        } else {
+            flatLayoutCard?.alphaValue = finderExtensionEnabled ? 0.48 : 0.46
+            groupedLayoutCard?.alphaValue = finderExtensionEnabled ? 0.48 : 0.46
+        }
+
         guard !preferenceSwitches.isEmpty else {
             return
         }
@@ -1269,7 +1620,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             preferenceRows.values.forEach { row in
                 row.alphaValue = 0.46
             }
-            statusDetailLabels[RightMenuMiniPreferences.isMenuEnabled]?.stringValue = AppText.localized("等待授权", "Waiting for permission")
+            statusDetailLabels[RightMenuMiniPreferences.isMenuEnabled]?.stringValue = AppText.localized("请先启用上方的 Finder 扩展授权", "Please enable Finder Extension permission above first")
             statusDetailLabels[RightMenuMiniPreferences.isGroupedMenuEnabled]?.stringValue = AppText.localized("授权后可设置", "Available after permission")
             updateMenuPowerAppearance(isEnabled: false)
             return
@@ -1280,14 +1631,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             toggle.isEnabled = true
         }
 
-        let menuEnabled = preferenceValue(for: RightMenuMiniPreferences.isMenuEnabled)
         statusDetailLabels[RightMenuMiniPreferences.isMenuEnabled]?.stringValue = menuEnabled
-            ? AppText.localized("已启用", "Enabled")
-            : AppText.localized("已关闭", "Disabled")
+            ? AppText.localized("已激活并显示在右键菜单中", "Activated and shown in context menu")
+            : AppText.localized("已暂停（菜单项目已隐藏）", "Paused (menu items hidden)")
         updateMenuPowerAppearance(isEnabled: menuEnabled)
 
-        let grouped = preferenceValue(for: RightMenuMiniPreferences.isGroupedMenuEnabled)
-        statusDetailLabels[RightMenuMiniPreferences.isGroupedMenuEnabled]?.stringValue = grouped
+        statusDetailLabels[RightMenuMiniPreferences.isGroupedMenuEnabled]?.stringValue = isGrouped
             ? AppText.localized("折叠为子菜单", "Grouped in submenu")
             : AppText.localized("直接显示三项功能", "Show actions directly")
 
@@ -1302,7 +1651,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func updateMenuPowerAppearance(isEnabled: Bool) {
         let color: NSColor = isEnabled ? .systemGreen : .systemRed
         preferenceIconViews[RightMenuMiniPreferences.isMenuEnabled]?.contentTintColor = color
-        preferenceIconTiles[RightMenuMiniPreferences.isMenuEnabled]?.layer?.backgroundColor = tintBackgroundColor(for: color).cgColor
+
+        let tile = preferenceIconTiles[RightMenuMiniPreferences.isMenuEnabled]
+        tile?.layer?.backgroundColor = tintBackgroundColor(for: color).cgColor
+        tile?.layer?.shadowColor = color.cgColor
+        tile?.layer?.shadowOffset = .zero
+        tile?.layer?.shadowRadius = 5.0
+        tile?.layer?.shadowOpacity = usesDarkAppearance ? 0.35 : 0.16
+        tile?.layer?.masksToBounds = false
     }
 
     private var dependentPreferenceKeys: [String] {
@@ -1357,8 +1713,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             )
             authorizationIconView?.contentTintColor = .systemGreen
             authorizationIconTile?.layer?.backgroundColor = tintBackgroundColor(for: .systemGreen).cgColor
-            authorizationTitleLabel?.stringValue = AppText.localized("Finder 扩展已启用", "Finder Extension Enabled")
-            authorizationDetailLabel?.stringValue = AppText.localized("右键菜单可以直接使用。", "The context menu is ready to use.")
+            authorizationIconTile?.layer?.shadowColor = NSColor.systemGreen.cgColor
+            authorizationIconTile?.layer?.shadowOffset = .zero
+            authorizationIconTile?.layer?.shadowRadius = 6.0
+            authorizationIconTile?.layer?.shadowOpacity = usesDarkAppearance ? 0.35 : 0.18
+            authorizationIconTile?.layer?.masksToBounds = false
+
+            authorizationTitleLabel?.stringValue = AppText.localized("Finder 扩展授权", "Finder Extension Permission")
+            authorizationDetailLabel?.stringValue = AppText.localized("已授权 · 服务准备就绪", "Authorized · Service ready")
         } else {
             authorizationIconView?.image = NSImage(
                 systemSymbolName: "exclamationmark.circle.fill",
@@ -1366,8 +1728,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             )
             authorizationIconView?.contentTintColor = .systemOrange
             authorizationIconTile?.layer?.backgroundColor = tintBackgroundColor(for: .systemOrange).cgColor
-            authorizationTitleLabel?.stringValue = AppText.localized("需要 Finder 扩展权限", "Finder Extension Permission Required")
-            authorizationDetailLabel?.stringValue = AppText.localized("首次使用前，请在系统设置中启用。", "Enable it in System Settings before first use.")
+            authorizationIconTile?.layer?.shadowColor = NSColor.systemOrange.cgColor
+            authorizationIconTile?.layer?.shadowOffset = .zero
+            authorizationIconTile?.layer?.shadowRadius = 6.0
+            authorizationIconTile?.layer?.shadowOpacity = usesDarkAppearance ? 0.35 : 0.18
+            authorizationIconTile?.layer?.masksToBounds = false
+
+            authorizationTitleLabel?.stringValue = AppText.localized("Finder 扩展授权", "Finder Extension Permission")
+            authorizationDetailLabel?.stringValue = AppText.localized("未授权 · 请在系统设置中开启", "Unauthorized · Please enable in System Settings")
         }
 
         refreshPreferenceControls()
@@ -1420,6 +1788,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    private struct GitHubAPIError: Decodable {
+        let message: String?
+    }
+
     @objc private func checkForUpdates() {
         latestReleasePageURL = nil
         updateCheckButton?.title = AppText.localized("检查", "Check")
@@ -1427,8 +1799,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         updateCheckButton?.isEnabled = false
         updateStatusLabel?.stringValue = AppText.localized("正在检查 GitHub Releases...", "Checking GitHub Releases...")
 
-        var request = URLRequest(url: latestReleaseAPIURL)
-        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+        let webURL = URL(string: "https://github.com/Goonwb/RightMenuMini/releases/latest")!
+        var request = URLRequest(url: webURL)
+        request.httpMethod = "GET"
         request.setValue("RightMenuMini/\(currentVersionString)", forHTTPHeaderField: "User-Agent")
 
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
@@ -1447,32 +1820,48 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     return
                 }
 
-                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 404 {
+                guard let httpResponse = response as? HTTPURLResponse else {
                     self.updateStatusLabel?.stringValue = AppText.localized(
-                        "还没有发布 Release。",
-                        "No GitHub release has been published yet."
+                        "无法连接 GitHub。",
+                        "Unable to connect to GitHub."
                     )
                     return
                 }
 
-                guard
-                    let data,
-                    let release = try? JSONDecoder().decode(GitHubRelease.self, from: data)
+                guard (200..<300).contains(httpResponse.statusCode) else {
+                    if httpResponse.statusCode == 404 {
+                        self.updateStatusLabel?.stringValue = AppText.localized(
+                            "还没有发布 Release。",
+                            "No GitHub release has been published yet."
+                        )
+                        return
+                    }
+
+                    self.updateStatusLabel?.stringValue = AppText.localized(
+                        "GitHub 返回 \(httpResponse.statusCode)，请稍后再试。",
+                        "GitHub returned \(httpResponse.statusCode). Please try again later."
+                    )
+                    return
+                }
+
+                guard let finalURL = httpResponse.url,
+                      finalURL.pathComponents.contains("tag")
                 else {
                     self.updateStatusLabel?.stringValue = AppText.localized(
-                        "无法读取版本信息。",
-                        "Unable to read release information."
+                        "未找到最新版本信息。",
+                        "No release version information was found."
                     )
                     return
                 }
 
-                let latestVersion = self.normalizedVersion(release.tagName)
-                self.latestReleasePageURL = URL(string: release.htmlURL)
+                let tagName = finalURL.lastPathComponent
+                let latestVersion = self.normalizedVersion(tagName)
+                self.latestReleasePageURL = finalURL
 
                 if self.isVersion(latestVersion, newerThan: self.currentVersionString) {
                     self.updateStatusLabel?.stringValue = AppText.localized(
-                        "发现新版本 \(release.tagName)，可前往 GitHub 下载。",
-                        "New version \(release.tagName) is available on GitHub."
+                        "发现新版本 \(tagName)，可前往 GitHub 下载。",
+                        "New version \(tagName) is available on GitHub."
                     )
                     self.updateCheckButton?.title = AppText.localized("前往下载最新版本", "Download Latest")
                     self.updateCheckButton?.action = #selector(self.openLatestReleaseOrRepository)
@@ -1653,5 +2042,246 @@ struct RightMenuMiniApplication {
         let delegate = AppDelegate()
         app.delegate = delegate
         app.run()
+    }
+}
+
+@MainActor
+final class ClickableRowView: NSView {
+    var action: Selector?
+    weak var target: AnyObject?
+    private var isHovered = false
+    private var isPressed = false
+    private var trackingArea: NSTrackingArea?
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let trackingArea {
+            removeTrackingArea(trackingArea)
+        }
+        let options: NSTrackingArea.Options = [.mouseEnteredAndExited, .activeInActiveApp, .assumeInside]
+        let area = NSTrackingArea(rect: bounds, options: options, owner: self, userInfo: nil)
+        addTrackingArea(area)
+        self.trackingArea = area
+    }
+
+    override func mouseEntered(with event: NSEvent) {
+        isHovered = true
+        needsDisplay = true
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        isHovered = false
+        needsDisplay = true
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        isPressed = true
+        needsDisplay = true
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        isPressed = false
+        needsDisplay = true
+
+        let localPoint = convert(event.locationInWindow, from: nil)
+        if bounds.contains(localPoint) {
+            if let target, let action {
+                _ = target.perform(action, with: self)
+            }
+        }
+    }
+
+    override func draw(_ rect: NSRect) {
+        super.draw(rect)
+        let isDark: Bool
+        if let appearance = window?.effectiveAppearance {
+            isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        } else {
+            isDark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        }
+
+        if isPressed {
+            let highlightRect = bounds.insetBy(dx: 4, dy: 4)
+            let path = NSBezierPath(roundedRect: highlightRect, xRadius: 8, yRadius: 8)
+            NSColor(white: isDark ? 1.0 : 0.0, alpha: isDark ? 0.12 : 0.06).set()
+            path.fill()
+        } else if isHovered {
+            let highlightRect = bounds.insetBy(dx: 4, dy: 4)
+            let path = NSBezierPath(roundedRect: highlightRect, xRadius: 8, yRadius: 8)
+            NSColor(white: isDark ? 1.0 : 0.0, alpha: isDark ? 0.06 : 0.03).set()
+            path.fill()
+        }
+    }
+}
+
+@MainActor
+final class LayoutOptionCard: NSView {
+    var action: Selector?
+    weak var target: AnyObject?
+    var isSelected = false {
+        didSet {
+            updateAppearance()
+        }
+    }
+
+    private var isHovered = false
+    private var isPressed = false
+    private var trackingArea: NSTrackingArea?
+
+    private let iconTile = NSView()
+    private let iconView = NSImageView()
+    private let titleLabel = NSTextField(labelWithString: "")
+    private let detailLabel = NSTextField(labelWithString: "")
+
+    init(symbol: String, title: String, detail: String) {
+        super.init(frame: .zero)
+        translatesAutoresizingMaskIntoConstraints = false
+        wantsLayer = true
+        layer?.cornerRadius = 10
+        layer?.cornerCurve = .continuous
+        layer?.borderWidth = 1.0
+
+        iconTile.translatesAutoresizingMaskIntoConstraints = false
+        iconTile.wantsLayer = true
+        iconTile.layer?.cornerRadius = 8
+        iconTile.layer?.cornerCurve = .continuous
+
+        iconView.image = NSImage(systemSymbolName: symbol, accessibilityDescription: title)
+        iconView.symbolConfiguration = .init(pointSize: 16, weight: .semibold)
+        iconView.translatesAutoresizingMaskIntoConstraints = false
+        iconTile.addSubview(iconView)
+
+        titleLabel.font = .systemFont(ofSize: 12.5, weight: .bold)
+        titleLabel.textColor = .labelColor
+        titleLabel.lineBreakMode = .byTruncatingTail
+        titleLabel.maximumNumberOfLines = 1
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        detailLabel.font = .systemFont(ofSize: 10.5)
+        detailLabel.textColor = .secondaryLabelColor
+        detailLabel.lineBreakMode = .byTruncatingTail
+        detailLabel.maximumNumberOfLines = 1
+        detailLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        let textStack = NSStackView(views: [titleLabel, detailLabel])
+        textStack.orientation = .vertical
+        textStack.alignment = .leading
+        textStack.spacing = 2
+        textStack.translatesAutoresizingMaskIntoConstraints = false
+
+        addSubview(iconTile)
+        addSubview(textStack)
+
+        titleLabel.stringValue = title
+        detailLabel.stringValue = detail
+
+        NSLayoutConstraint.activate([
+            iconTile.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
+            iconTile.centerYAnchor.constraint(equalTo: centerYAnchor),
+            iconTile.widthAnchor.constraint(equalToConstant: 32),
+            iconTile.heightAnchor.constraint(equalToConstant: 32),
+
+            iconView.centerXAnchor.constraint(equalTo: iconTile.centerXAnchor),
+            iconView.centerYAnchor.constraint(equalTo: iconTile.centerYAnchor),
+            iconView.widthAnchor.constraint(equalToConstant: 18),
+            iconView.heightAnchor.constraint(equalToConstant: 18),
+
+            textStack.leadingAnchor.constraint(equalTo: iconTile.trailingAnchor, constant: 10),
+            textStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            textStack.centerYAnchor.constraint(equalTo: centerYAnchor)
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let trackingArea {
+            removeTrackingArea(trackingArea)
+        }
+        let options: NSTrackingArea.Options = [.mouseEnteredAndExited, .activeInActiveApp, .assumeInside]
+        let area = NSTrackingArea(rect: bounds, options: options, owner: self, userInfo: nil)
+        addTrackingArea(area)
+        self.trackingArea = area
+    }
+
+    override func mouseEntered(with event: NSEvent) {
+        isHovered = true
+        updateAppearance()
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        isHovered = false
+        updateAppearance()
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        isPressed = true
+        updateAppearance()
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        isPressed = false
+        updateAppearance()
+
+        let localPoint = convert(event.locationInWindow, from: nil)
+        if bounds.contains(localPoint) {
+            if let target, let action {
+                _ = target.perform(action, with: self)
+            }
+        }
+    }
+
+    func updateAppearance() {
+        let isDark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+
+        // Colors base
+        let accent = NSColor.controlAccentColor
+        let cardBgColor = isDark
+            ? NSColor(white: 0.14, alpha: 1.0)
+            : NSColor(white: 0.98, alpha: 1.0)
+        let unselectedBorderColor = isDark
+            ? NSColor(white: 1.0, alpha: 0.08)
+            : NSColor(white: 0.0, alpha: 0.06)
+
+        if isSelected {
+            layer?.backgroundColor = accent.withAlphaComponent(isDark ? 0.12 : 0.06).cgColor
+            layer?.borderColor = accent.cgColor
+            layer?.borderWidth = 1.5
+
+            iconTile.layer?.backgroundColor = accent.withAlphaComponent(isDark ? 0.20 : 0.10).cgColor
+            iconView.contentTintColor = accent
+        } else {
+            layer?.borderWidth = 1.0
+            layer?.borderColor = unselectedBorderColor.cgColor
+
+            if isPressed {
+                layer?.backgroundColor = isDark
+                    ? NSColor(white: 0.11, alpha: 1.0).cgColor
+                    : NSColor(white: 0.93, alpha: 1.0).cgColor
+            } else if isHovered {
+                layer?.backgroundColor = isDark
+                    ? NSColor(white: 0.17, alpha: 1.0).cgColor
+                    : NSColor(white: 0.96, alpha: 1.0).cgColor
+            } else {
+                layer?.backgroundColor = cardBgColor.cgColor
+            }
+
+            let iconColor = isDark ? NSColor.white.withAlphaComponent(0.7) : NSColor.black.withAlphaComponent(0.6)
+            iconTile.layer?.backgroundColor = isDark ? NSColor.white.withAlphaComponent(0.08).cgColor : NSColor.black.withAlphaComponent(0.04).cgColor
+            iconView.contentTintColor = iconColor
+        }
+    }
+
+    override func viewDidChangeEffectiveAppearance() {
+        super.viewDidChangeEffectiveAppearance()
+        updateAppearance()
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        updateAppearance()
     }
 }

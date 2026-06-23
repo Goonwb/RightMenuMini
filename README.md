@@ -34,17 +34,17 @@ The app supports:
 - Individual switches for each action.
 - Optional grouped submenu display.
 - Manual update checking from GitHub Releases.
-- Language selection: System, Simplified Chinese, or English.
+- Language selection: Simplified Chinese or English.
 - Appearance selection: System, Light, or Dark.
 
 ## Screenshots
 
 <p align="center">
-  <img src="docs/images/overview-en.png" alt="RightMenuMini overview" width="820">
+  <img src="docs/images/general-en.png" alt="RightMenuMini general settings" width="820">
 </p>
 
 <p align="center">
-  <img src="docs/images/settings-en.png" alt="RightMenuMini settings" width="820">
+  <img src="docs/images/actions-en.png" alt="RightMenuMini actions settings" width="820">
 </p>
 
 ## Requirements
@@ -84,15 +84,9 @@ RightMenuMini uses Apple's Finder Sync extension mechanism. macOS requires users
 
 Before permission is granted, all switches are shown as off and disabled. After permission is enabled, the app restores the default or saved settings.
 
-## Updating
-
-macOS cannot replace an app bundle while it is running. Before replacing an older copy in `/Applications`, quit RightMenuMini from the menu bar.
-
-Release archives in `dist/` are intentionally ignored by Git. Use GitHub Releases for public distribution.
-
 ## Notes
 
-- Current version: `0.1.1`.
+- Current version: `0.1.2`.
 - The distributed app is not notarized yet. Users may need to allow it manually in macOS security settings.
 
 ## License
