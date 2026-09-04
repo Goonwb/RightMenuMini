@@ -126,6 +126,110 @@ private enum AppText {
     }
 }
 
+private enum MenuWishAssets {
+    // MenuWish 专属标志：原版三颗四角星（纯矢量，支持 Hover 纯白反色与深浅色模式）
+    static let originalSparklesSVG = """
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="black">
+      <path d="M 8.70 4.75 L 9.82 7.88 L 12.95 9.00 L 9.82 10.12 L 8.70 13.25 L 7.58 10.12 L 4.45 9.00 L 7.58 7.88 Z" />
+      <path d="M 4.15 2.65 L 4.77 4.13 L 6.25 4.75 L 4.77 5.37 L 4.15 6.85 L 3.53 5.37 L 2.05 4.75 L 3.53 4.13 Z" />
+      <path d="M 13.65 11.55 L 14.19 12.81 L 15.45 13.35 L 14.19 13.89 L 13.65 15.15 L 13.11 13.89 L 11.85 13.35 L 13.11 12.81 Z" />
+    </svg>
+    """
+
+    // Phosphor Icons Medium: 适度加粗（+30% 粗度，完美契合 macOS 菜单字重与可读性）
+    static let phosphorFileTextSVG = """
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="black">
+      <path stroke="black" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-32-80a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,136Zm0,32a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,168Z"/>
+    </svg>
+    """
+
+    static let phosphorTerminalSVG = """
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="black">
+      <path stroke="black" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" d="M128,128a8,8,0,0,1-3,6.25l-40,32a8,8,0,1,1-10-12.5L107.19,128,75,102.25a8,8,0,1,1,10-12.5l40,32A8,8,0,0,1,128,128Zm48,24H136a8,8,0,0,0,0,16h40a8,8,0,0,0,0-16Zm56-96V200a16,16,0,0,1-16,16H40a16,16,0,0,1-16-16V56A16,16,0,0,1,40,40H216A16,16,0,0,1,232,56ZM216,200V56H40V200H216Z"/>
+    </svg>
+    """
+
+    static let phosphorLinkSVG = """
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="black">
+      <path stroke="black" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" d="M240,88.23a54.43,54.43,0,0,1-16,37L189.25,160a54.27,54.27,0,0,1-38.63,16h-.05A54.63,54.63,0,0,1,96,119.84a8,8,0,0,1,16,.45A38.62,38.62,0,0,0,150.58,160h0a38.39,38.39,0,0,0,27.31-11.31l34.75-34.75a38.63,38.63,0,0,0-54.63-54.63l-11,11A8,8,0,0,1,135.7,59l11-11A54.65,54.65,0,0,1,224,48,54.86,54.86,0,0,1,240,88.23ZM109,185.66l-11,11A38.41,38.41,0,0,1,70.6,208h0a38.63,38.63,0,0,1-27.29-65.94L78,107.31A38.63,38.63,0,0,1,144,135.71a8,8,0,0,0,16,.45A54.86,54.86,0,0,0,144,96a54.65,54.65,0,0,0-77.27,0L32,130.75A54.62,54.62,0,0,0,70.56,224h0a54.28,54.28,0,0,0,38.64-16l11-11A8,8,0,0,0,109,185.66Z"/>
+    </svg>
+    """
+
+    nonisolated(unsafe) private static var cache: [String: NSImage] = [:]
+    private static let lock = NSLock()
+
+    static func image(named name: String, size: NSSize = NSSize(width: 16, height: 16)) -> NSImage? {
+        let key = "\(name)_\(Int(size.width))x\(Int(size.height))"
+        lock.lock()
+        if let cached = cache[key] {
+            lock.unlock()
+            return cached
+        }
+        lock.unlock()
+
+        let svgString: String?
+        switch name {
+        case "sparkles", "menuwish-stars":
+            svgString = originalSparklesSVG
+        case "file-text":
+            svgString = phosphorFileTextSVG
+        case "square-terminal", "terminal":
+            svgString = phosphorTerminalSVG
+        case "link":
+            svgString = phosphorLinkSVG
+        default:
+            svgString = nil
+        }
+
+        guard let svg = svgString,
+              let data = svg.data(using: .utf8),
+              let svgImage = NSImage(data: data) else {
+            return nil
+        }
+
+        let rendered = NSImage(size: size)
+        for scale in [1.0, 2.0] {
+            let pxW = Int(size.width * scale)
+            let pxH = Int(size.height * scale)
+            let colorSpace = CGColorSpaceCreateDeviceGray()
+            guard let ctx = CGContext(
+                data: nil,
+                width: pxW,
+                height: pxH,
+                bitsPerComponent: 8,
+                bytesPerRow: pxW * 2,
+                space: colorSpace,
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            ) else {
+                continue
+            }
+            ctx.interpolationQuality = .high
+            ctx.setShouldAntialias(true)
+            ctx.scaleBy(x: scale, y: scale)
+
+            let g = NSGraphicsContext(cgContext: ctx, flipped: false)
+            NSGraphicsContext.saveGraphicsState()
+            NSGraphicsContext.current = g
+            svgImage.draw(in: NSRect(origin: .zero, size: size))
+            NSGraphicsContext.restoreGraphicsState()
+
+            if let cgImage = ctx.makeImage() {
+                let rep = NSBitmapImageRep(cgImage: cgImage)
+                rep.size = size
+                rendered.addRepresentation(rep)
+            }
+        }
+
+        rendered.isTemplate = true
+
+        lock.lock()
+        cache[key] = rendered
+        lock.unlock()
+
+        return rendered
+    }
+}
+
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private enum SidebarTab {
@@ -156,8 +260,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let extensionBundleIdentifier = "com.codex.RightMenuMini.FinderExtension"
     private let sidebarWidth: CGFloat = 220
     private let contentWidth: CGFloat = 540
-    private let repositoryURL = URL(string: "https://github.com/Goonwb/RightMenuMini")!
-    private let latestReleaseAPIURL = URL(string: "https://api.github.com/repos/Goonwb/RightMenuMini/releases/latest")!
+    private let repositoryURL = URL(string: "https://github.com/Goonwb/MenuWish")!
+    private let latestReleaseAPIURL = URL(string: "https://api.github.com/repos/Goonwb/MenuWish/releases/latest")!
     private var window: NSWindow?
     private var statusItem: NSStatusItem?
     private var statusMenuAuthorizationItem: NSMenuItem?
@@ -169,8 +273,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var preferenceSwitches: [String: NSSwitch] = [:]
     private var preferenceRows: [String: NSView] = [:]
     private var statusDetailLabels: [String: NSTextField] = [:]
+    private var sectionTitleLabels: [String: NSTextField] = [:]
+    private var rowTitleLabels: [String: NSTextField] = [:]
+    private var rowDetailLabels: [String: NSTextField] = [:]
+    private var popupControls: [String: NSPopUpButton] = [:]
+    private var localizedButtons: [String: NSButton] = [:]
     private var preferenceIconViews: [String: NSImageView] = [:]
     private var preferenceIconTiles: [String: NSView] = [:]
+    private var cardViews: [NSView] = []
+    private var dividerLines: [NSView] = []
+    private var iconTileViews: [NSView] = []
+    private var iconTileColors: [ObjectIdentifier: NSColor] = [:]
     private var finderExtensionEnabled = false
     private var authorizationIconTile: NSView?
     private var authorizationIconView: NSImageView?
@@ -179,7 +292,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var authorizationButton: NSButton?
     private var updateStatusLabel: NSTextField?
     private var updateCheckButton: NSButton?
+    private var updateDownloadAvailable = false
     private var latestReleasePageURL: URL?
+    private var versionBadge: NSView?
+    private var versionBadgeLabel: NSTextField?
     private var flatLayoutCard: LayoutOptionCard?
     private var groupedLayoutCard: LayoutOptionCard?
     private var sidebarBrandLabel: NSTextField?
@@ -196,7 +312,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         preferences.register(defaults: RightMenuMiniPreferences.registeredDefaults)
         RightMenuMiniPreferences.mirrorValues(from: preferences)
+        registerFinderExtension()
         applyAppearancePreference()
+        if let bundledIcon = bundledApplicationIconImage() {
+            NSApp.applicationIconImage = bundledIcon
+        }
         configureStatusItem()
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
@@ -217,7 +337,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidBecomeActive(_ notification: Notification) {
-        refreshAuthorizationStatus()
+        applyAuthorizationStatus(finderExtensionEnabled)
     }
 
     private func showWindow() {
@@ -240,7 +360,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             backing: .buffered,
             defer: false
         )
-        window.title = AppText.localized("右键菜单助手", "RightMenuMini")
+        window.title = "MenuWish"
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.isMovableByWindowBackground = true
@@ -258,11 +378,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         preferenceSwitches.removeAll()
         preferenceRows.removeAll()
         statusDetailLabels.removeAll()
+        sectionTitleLabels.removeAll()
+        rowTitleLabels.removeAll()
+        rowDetailLabels.removeAll()
+        popupControls.removeAll()
+        localizedButtons.removeAll()
         preferenceIconViews.removeAll()
         preferenceIconTiles.removeAll()
+        cardViews.removeAll()
+        dividerLines.removeAll()
+        iconTileViews.removeAll()
+        iconTileColors.removeAll()
         sidebarButtons.removeAll()
         updateStatusLabel = nil
         updateCheckButton = nil
+        versionBadge = nil
+        versionBadgeLabel = nil
 
         let sidebar = sidebarView()
         let separator = NSView()
@@ -301,15 +432,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func configureStatusItem() {
         let statusItem = self.statusItem ?? NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        statusItem.button?.image = NSImage(
-            systemSymbolName: "contextualmenu.and.cursorarrow",
-            accessibilityDescription: AppText.localized("右键菜单助手", "RightMenuMini")
-        )
+        statusItem.button?.image = MenuWishAssets.image(named: "sparkles", size: NSSize(width: 18, height: 18))
         statusItem.button?.image?.isTemplate = true
 
         let menu = NSMenu()
         menu.addItem(NSMenuItem(
-            title: AppText.localized("打开右键菜单助手", "Open RightMenuMini"),
+            title: AppText.localized("打开 MenuWish", "Open MenuWish"),
             action: #selector(showMainWindow),
             keyEquivalent: ""
         ))
@@ -321,7 +449,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(authorizationItem)
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(
-            title: AppText.localized("退出右键菜单助手", "Quit RightMenuMini"),
+            title: AppText.localized("退出 MenuWish", "Quit MenuWish"),
             action: #selector(quitApp),
             keyEquivalent: "q"
         ))
@@ -351,21 +479,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func selectSidebarTab(_ tab: SidebarTab) {
         currentTab = tab
 
-        for (buttonTab, button) in sidebarButtons {
-            let isSelected = buttonTab == tab
-            button.layer?.backgroundColor = isSelected
-                ? sidebarSelectionColor.cgColor
-                : NSColor.clear.cgColor
-
-            for subview in button.subviews {
-                if let imageView = subview as? NSImageView {
-                    imageView.contentTintColor = isSelected ? .controlAccentColor : .secondaryLabelColor
-                } else if let label = subview as? NSTextField {
-                    label.textColor = isSelected ? .controlAccentColor : .secondaryLabelColor
-                    label.font = .systemFont(ofSize: 13, weight: isSelected ? .semibold : .medium)
-                }
-            }
-        }
+        refreshSidebarSelectionAppearance()
 
         guard let contentContainer else {
             return
@@ -375,8 +489,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         preferenceSwitches.removeAll()
         preferenceRows.removeAll()
         statusDetailLabels.removeAll()
+        sectionTitleLabels.removeAll()
+        rowTitleLabels.removeAll()
+        rowDetailLabels.removeAll()
+        popupControls.removeAll()
+        localizedButtons.removeAll()
         preferenceIconViews.removeAll()
         preferenceIconTiles.removeAll()
+        cardViews.removeAll()
+        dividerLines.removeAll()
+        iconTileViews.removeAll()
+        iconTileColors.removeAll()
         authorizationIconTile = nil
         authorizationIconView = nil
         authorizationTitleLabel = nil
@@ -384,6 +507,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         authorizationButton = nil
         updateStatusLabel = nil
         updateCheckButton = nil
+        versionBadge = nil
+        versionBadgeLabel = nil
         flatLayoutCard = nil
         groupedLayoutCard = nil
 
@@ -404,7 +529,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             content.bottomAnchor.constraint(lessThanOrEqualTo: contentContainer.bottomAnchor)
         ])
 
-        refreshAuthorizationStatus()
+        applyAuthorizationStatus(finderExtensionEnabled)
+    }
+
+    private func refreshSidebarSelectionAppearance() {
+        for (buttonTab, button) in sidebarButtons {
+            let isSelected = buttonTab == currentTab
+            button.layer?.backgroundColor = isSelected
+                ? sidebarSelectionColor.cgColor
+                : NSColor.clear.cgColor
+
+            for subview in button.subviews {
+                if let imageView = subview as? NSImageView {
+                    imageView.contentTintColor = isSelected ? sidebarSelectedForegroundColor : .secondaryLabelColor
+                } else if let label = subview as? NSTextField {
+                    label.textColor = isSelected ? sidebarSelectedForegroundColor : .secondaryLabelColor
+                    label.font = .systemFont(ofSize: 13, weight: isSelected ? .semibold : .medium)
+                }
+            }
+        }
+    }
+
+    private func bundledApplicationIconImage() -> NSImage? {
+        guard
+            let iconURL = Bundle.main.url(forResource: "AppIcon2026Corners", withExtension: "icns"),
+            let image = NSImage(contentsOf: iconURL),
+            image.isValid
+        else {
+            return nil
+        }
+        return image
     }
 
     private func sidebarView() -> NSView {
@@ -415,16 +569,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         sidebar.translatesAutoresizingMaskIntoConstraints = false
 
         let icon = NSImageView()
-        icon.image = applicationIconImage()
+        icon.image = bundledApplicationIconImage() ?? NSApp.applicationIconImage
         icon.imageScaling = .scaleProportionallyUpOrDown
         icon.translatesAutoresizingMaskIntoConstraints = false
         icon.wantsLayer = true
-        icon.layer?.shadowColor = NSColor.black.cgColor
-        icon.layer?.shadowOffset = CGSize(width: 0, height: -2.5)
-        icon.layer?.shadowRadius = 6.0
-        icon.layer?.shadowOpacity = 0.12
-
-        let titleLabel = NSTextField(labelWithString: AppText.localized("右键菜单助手", "RightMenuMini"))
+        let titleLabel = NSTextField(labelWithString: "MenuWish")
         titleLabel.font = .systemFont(ofSize: 17, weight: .bold)
         titleLabel.textColor = .labelColor
         titleLabel.alignment = .center
@@ -525,50 +674,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return button
     }
 
-    private func applicationIconImage() -> NSImage {
-        if
-            let iconURL = Bundle.main.url(forResource: "AppIcon", withExtension: "icns"),
-            let image = NSImage(contentsOf: iconURL)
-        {
-            return image
-        }
-
-        return NSApp.applicationIconImage
-    }
-
     private func generalContentView() -> NSView {
-        let statusSection = sectionTitle(AppText.localized("服务与状态", "Service & Status"))
+        let statusSection = sectionTitle(AppText.localized("服务与状态", "Service & Status"), key: "section.status")
 
         let authRow = authorizationRow()
         let menuRow = statusToggleRow()
         let statusPanel = settingsPanel(rows: [authRow, menuRow])
 
-        let preferencesSection = sectionTitle(AppText.localized("偏好", "Preferences"))
+        let preferencesSection = sectionTitle(AppText.localized("偏好", "Preferences"), key: "section.preferences")
+        let languageRow = settingsPopUpRow(
+            symbol: "character.bubble",
+            title: AppText.localized("语言", "Language"),
+            detail: AppText.localized("选择 App 和 Finder 菜单显示语言", "Choose the app and Finder menu language"),
+            key: RightMenuMiniPreferences.languageMode,
+            items: [
+                (RightMenuMiniPreferences.systemValue, AppText.localized("跟随系统", "System")),
+                (RightMenuMiniPreferences.chineseValue, "简体中文"),
+                (RightMenuMiniPreferences.englishValue, "English")
+            ],
+            action: #selector(languageSelectionChanged(_:))
+        )
+        let appearanceRow = settingsPopUpRow(
+            symbol: "circle.lefthalf.filled",
+            title: AppText.localized("显示模式", "Display Mode"),
+            detail: AppText.localized("选择浅色、深色或跟随系统", "Choose light, dark, or system appearance"),
+            key: RightMenuMiniPreferences.appearanceMode,
+            items: [
+                (RightMenuMiniPreferences.systemValue, AppText.localized("跟随系统", "System")),
+                (RightMenuMiniPreferences.lightValue, AppText.localized("浅色", "Light")),
+                (RightMenuMiniPreferences.darkValue, AppText.localized("深色", "Dark"))
+            ],
+            action: #selector(appearanceSelectionChanged(_:))
+        )
         let preferencesPanel = settingsPanel(rows: [
-            settingsPopUpRow(
-                symbol: "character.bubble",
-                title: AppText.localized("语言", "Language"),
-                detail: AppText.localized("选择 App 和 Finder 菜单显示语言", "Choose the app and Finder menu language"),
-                key: RightMenuMiniPreferences.languageMode,
-                items: [
-                    (RightMenuMiniPreferences.systemValue, AppText.localized("跟随系统", "System")),
-                    (RightMenuMiniPreferences.chineseValue, "简体中文"),
-                    (RightMenuMiniPreferences.englishValue, "English")
-                ],
-                action: #selector(languageSelectionChanged(_:))
-            ),
-            settingsPopUpRow(
-                symbol: "circle.lefthalf.filled",
-                title: AppText.localized("外观", "Appearance"),
-                detail: AppText.localized("选择浅色、深色或跟随系统", "Choose light, dark, or system appearance"),
-                key: RightMenuMiniPreferences.appearanceMode,
-                items: [
-                    (RightMenuMiniPreferences.systemValue, AppText.localized("跟随系统", "System")),
-                    (RightMenuMiniPreferences.lightValue, AppText.localized("浅色", "Light")),
-                    (RightMenuMiniPreferences.darkValue, AppText.localized("深色", "Dark"))
-                ],
-                action: #selector(appearanceSelectionChanged(_:))
-            )
+            languageRow,
+            appearanceRow
         ])
 
         let versionRow = settingsVersionRow(
@@ -585,12 +725,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let githubRow = settingsButtonRow(
             symbol: "github",
             title: "GitHub",
-            detail: "github.com/Goonwb/RightMenuMini",
+            detail: "github.com/Goonwb/MenuWish",
             buttonTitle: AppText.localized("前往", "Visit"),
             action: #selector(openGitHubProfile)
         )
 
-        let projectSection = sectionTitle(AppText.localized("关于", "About"))
+        let projectSection = sectionTitle(AppText.localized("关于", "About"), key: "section.about")
         let projectPanel = settingsPanel(rows: [
             versionRow.row,
             githubRow.row
@@ -622,7 +762,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func actionsContentView() -> NSView {
-        let layoutSection = sectionTitle(AppText.localized("菜单布局", "Menu Layout"))
+        let layoutSection = sectionTitle(AppText.localized("菜单布局", "Menu Layout"), key: "section.layout")
 
         let flatCard = LayoutOptionCard(
             symbol: "list.bullet",
@@ -648,23 +788,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         layoutStack.spacing = 12
         layoutStack.translatesAutoresizingMaskIntoConstraints = false
 
-        let featuresSection = sectionTitle(AppText.localized("快捷功能", "Quick Actions"))
+        let featuresSection = sectionTitle(AppText.localized("快捷功能", "Quick Actions"), key: "section.features")
 
         let rows = [
             preferenceRow(
-                symbol: "doc.badge.plus",
+                symbol: "file-text",
                 title: AppText.localized("新建 Text", "New Text"),
                 detail: AppText.localized("在当前位置创建 Untitled.txt", "Create Untitled.txt here"),
                 key: RightMenuMiniPreferences.isNewTextEnabled
             ),
             preferenceRow(
-                symbol: "terminal",
+                symbol: "square-terminal",
                 title: AppText.localized("进入终端", "Open Terminal"),
                 detail: AppText.localized("从当前位置打开 Terminal", "Open Terminal at this location"),
                 key: RightMenuMiniPreferences.isTerminalEnabled
             ),
             preferenceRow(
-                symbol: "doc.on.doc",
+                symbol: "link",
                 title: AppText.localized("拷贝路径", "Copy Path"),
                 detail: AppText.localized("复制所选项目或当前文件夹路径", "Copy selected paths or current folder"),
                 key: RightMenuMiniPreferences.isCopyPathEnabled
@@ -696,7 +836,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return stack
     }
 
-    private func sectionTitle(_ title: String) -> NSView {
+    private func sectionTitle(_ title: String, key: String? = nil) -> NSView {
         let container = NSView()
         container.translatesAutoresizingMaskIntoConstraints = false
 
@@ -704,6 +844,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         label.font = .systemFont(ofSize: 14.5, weight: .bold)
         label.textColor = .secondaryLabelColor
         label.translatesAutoresizingMaskIntoConstraints = false
+        if let key {
+            sectionTitleLabels[key] = label
+        }
 
         container.addSubview(label)
 
@@ -735,6 +878,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         iconTile.layer?.cornerRadius = 11
         iconTile.layer?.cornerCurve = .continuous
         iconTile.layer?.backgroundColor = tintBackgroundColor(for: color).cgColor
+        registerIconTile(iconTile, color: color)
 
         let icon = NSImageView()
         if symbol == "github" {
@@ -770,6 +914,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.bezelStyle = .rounded
         button.controlSize = .regular
+        localizedButtons["github"] = button
 
         row.addSubview(iconTile)
         row.addSubview(titleLabel)
@@ -819,6 +964,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         iconTile.layer?.cornerRadius = 11
         iconTile.layer?.cornerCurve = .continuous
         iconTile.layer?.backgroundColor = tintBackgroundColor(for: color).cgColor
+        registerIconTile(iconTile, color: color)
 
         let icon = NSImageView()
         icon.image = NSImage(systemSymbolName: symbol, accessibilityDescription: title)
@@ -840,15 +986,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         badge.wantsLayer = true
         badge.layer?.cornerRadius = 5
         badge.layer?.cornerCurve = .continuous
-        badge.layer?.backgroundColor = NSColor.systemGreen.withAlphaComponent(usesDarkAppearance ? 0.16 : 0.08).cgColor
+        badge.layer?.backgroundColor = versionBadgeBackgroundColor.cgColor
         badge.layer?.borderWidth = 0.5
-        badge.layer?.borderColor = NSColor.systemGreen.withAlphaComponent(usesDarkAppearance ? 0.3 : 0.15).cgColor
+        badge.layer?.borderColor = versionBadgeBorderColor.cgColor
 
         let badgeLabel = NSTextField(labelWithString: version)
         badgeLabel.font = .systemFont(ofSize: 10.5, weight: .bold)
-        badgeLabel.textColor = .systemGreen
+        badgeLabel.textColor = .controlAccentColor
         badgeLabel.translatesAutoresizingMaskIntoConstraints = false
         badge.addSubview(badgeLabel)
+        versionBadge = badge
+        versionBadgeLabel = badgeLabel
 
         NSLayoutConstraint.activate([
             badgeLabel.leadingAnchor.constraint(equalTo: badge.leadingAnchor, constant: 6),
@@ -868,6 +1016,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.bezelStyle = .rounded
         button.controlSize = .regular
+        rowTitleLabels["version"] = titleLabel
+        rowDetailLabels["version"] = detailLabel
+        localizedButtons["version.check"] = button
 
         row.addSubview(iconTile)
         row.addSubview(titleLabel)
@@ -926,6 +1077,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         iconTile.layer?.cornerRadius = 11
         iconTile.layer?.cornerCurve = .continuous
         iconTile.layer?.backgroundColor = tintBackgroundColor(for: color).cgColor
+        registerIconTile(iconTile, color: color)
 
         let icon = NSImageView()
         if symbol == "github" {
@@ -1016,6 +1168,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         iconTile.layer?.cornerRadius = 11
         iconTile.layer?.cornerCurve = .continuous
         iconTile.layer?.backgroundColor = tintBackgroundColor(for: color).cgColor
+        registerIconTile(iconTile, color: color)
 
         let icon = NSImageView()
         icon.image = NSImage(systemSymbolName: symbol, accessibilityDescription: title)
@@ -1044,6 +1197,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         popup.controlSize = .regular
         popup.target = self
         popup.action = action
+        rowTitleLabels[key] = titleLabel
+        rowDetailLabels[key] = detailLabel
+        popupControls[key] = popup
 
         items.forEach { item in
             popup.addItem(withTitle: item.title)
@@ -1124,6 +1280,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             symbol: "checkmark.shield",
             action: #selector(openExtensionSettings)
         )
+        button.isHidden = finderExtensionEnabled
+        localizedButtons["authorization"] = button
 
         row.addSubview(iconTile)
         row.addSubview(textStack)
@@ -1173,6 +1331,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         iconTile.layer?.cornerRadius = 11
         iconTile.layer?.cornerCurve = .continuous
         iconTile.layer?.backgroundColor = tintBackgroundColor(for: color).cgColor
+        registerIconTile(iconTile, color: color)
 
         let icon = NSImageView()
         icon.image = NSImage(systemSymbolName: "power", accessibilityDescription: AppText.localized("右键菜单", "Context Menu"))
@@ -1207,6 +1366,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         toggle.action = #selector(preferenceSwitchChanged(_:))
         toggle.controlSize = .regular
         toggle.translatesAutoresizingMaskIntoConstraints = false
+        toggle.state = preferenceValue(for: key) ? .on : .off
+        toggle.isEnabled = finderExtensionEnabled
 
         row.addSubview(iconTile)
         row.addSubview(textStack)
@@ -1235,6 +1396,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         preferenceSwitches[key] = toggle
         preferenceRows[key] = row
         statusDetailLabels[key] = detailLabel
+        rowTitleLabels[key] = titleLabel
+        rowDetailLabels[key] = detailLabel
         preferenceIconViews[key] = icon
         preferenceIconTiles[key] = iconTile
 
@@ -1244,19 +1407,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func featureSettingsPanel() -> NSView {
         settingsPanel(rows: [
             preferenceRow(
-                symbol: "doc.badge.plus",
+                symbol: "file-text",
                 title: AppText.localized("新建 Text", "New Text"),
                 detail: AppText.localized("在当前位置创建 Untitled.txt", "Create Untitled.txt here"),
                 key: RightMenuMiniPreferences.isNewTextEnabled
             ),
             preferenceRow(
-                symbol: "terminal",
+                symbol: "square-terminal",
                 title: AppText.localized("进入终端", "Open Terminal"),
                 detail: AppText.localized("从当前位置打开 Terminal", "Open Terminal at this location"),
                 key: RightMenuMiniPreferences.isTerminalEnabled
             ),
             preferenceRow(
-                symbol: "doc.on.doc",
+                symbol: "link",
                 title: AppText.localized("拷贝路径", "Copy Path"),
                 detail: AppText.localized("复制所选项目或当前文件夹路径", "Copy selected paths or current folder"),
                 key: RightMenuMiniPreferences.isCopyPathEnabled
@@ -1314,7 +1477,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private var sidebarSelectionColor: NSColor {
-        NSColor.controlAccentColor.withAlphaComponent(usesDarkAppearance ? 0.24 : 0.18)
+        NSColor.controlAccentColor.withAlphaComponent(usesDarkAppearance ? 0.72 : 0.76)
+    }
+
+    private var sidebarSelectedForegroundColor: NSColor {
+        .alternateSelectedControlTextColor
+    }
+
+    private var versionBadgeBackgroundColor: NSColor {
+        NSColor.controlAccentColor.withAlphaComponent(usesDarkAppearance ? 0.18 : 0.09)
+    }
+
+    private var versionBadgeBorderColor: NSColor {
+        NSColor.controlAccentColor.withAlphaComponent(usesDarkAppearance ? 0.32 : 0.18)
     }
 
     private var separatorLayerColor: NSColor {
@@ -1327,24 +1502,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         color.withAlphaComponent(usesDarkAppearance ? 0.18 : 0.08)
     }
 
+    private func registerIconTile(_ tile: NSView, color: NSColor) {
+        iconTileViews.append(tile)
+        iconTileColors[ObjectIdentifier(tile)] = color
+    }
+
     private func iconColor(forSymbol symbol: String) -> NSColor {
         switch symbol {
         case "power":
             return .systemBlue
         case "rectangle.stack":
             return .systemPurple
-        case "doc.badge.plus":
+        case "doc.badge.plus", "doc.text", "square.and.pencil", "plus.square", "file-text":
             return .systemOrange
-        case "terminal":
+        case "terminal", "terminal.fill", "square-terminal":
             return .systemTeal
-        case "doc.on.doc":
+        case "doc.on.doc", "link":
             return .systemGreen
+        case "sparkles":
+            return .controlAccentColor
         case "character.bubble":
             return .systemBlue
         case "circle.lefthalf.filled":
             return .systemOrange
         case "info.circle":
-            return .systemGreen
+            return .controlAccentColor
         case "github":
             return .labelColor
         default:
@@ -1356,6 +1538,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let view = NSView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.wantsLayer = true
+        cardViews.append(view)
         view.layer?.cornerRadius = cornerRadius
         view.layer?.cornerCurve = .continuous
         view.layer?.backgroundColor = cardBackgroundColor.cgColor
@@ -1389,10 +1572,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         iconTile.wantsLayer = true
         iconTile.layer?.cornerRadius = 12
         iconTile.layer?.backgroundColor = tintBackgroundColor(for: color).cgColor
+        registerIconTile(iconTile, color: color)
 
         let icon = NSImageView()
-        icon.image = NSImage(systemSymbolName: symbol, accessibilityDescription: title)
-        icon.symbolConfiguration = .init(pointSize: 20, weight: .semibold)
+        if let iconImage = MenuWishAssets.image(named: symbol, size: NSSize(width: 20, height: 20)) {
+            icon.image = iconImage
+        } else {
+            icon.image = NSImage(systemSymbolName: symbol, accessibilityDescription: title)
+            icon.symbolConfiguration = .init(pointSize: 20, weight: .semibold)
+        }
         icon.contentTintColor = color
         icon.translatesAutoresizingMaskIntoConstraints = false
         iconTile.addSubview(icon)
@@ -1422,9 +1610,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         toggle.controlSize = .regular
         toggle.translatesAutoresizingMaskIntoConstraints = false
         toggle.toolTip = title
+        toggle.state = preferenceValue(for: key) ? .on : .off
+        toggle.isEnabled = finderExtensionEnabled && preferenceValue(for: RightMenuMiniPreferences.isMenuEnabled)
         preferenceSwitches[key] = toggle
         preferenceRows[key] = row
         statusDetailLabels[key] = detailLabel
+        rowTitleLabels[key] = titleLabel
+        rowDetailLabels[key] = detailLabel
         preferenceIconViews[key] = icon
         preferenceIconTiles[key] = iconTile
 
@@ -1465,6 +1657,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         line.translatesAutoresizingMaskIntoConstraints = false
         line.wantsLayer = true
         line.layer?.backgroundColor = separatorLayerColor.cgColor
+        dividerLines.append(line)
         view.addSubview(line)
 
         view.wantsLayer = true
@@ -1507,7 +1700,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func appearanceSelectionChanged(_ sender: NSPopUpButton) {
         updateStringPreference(from: sender)
         applyAppearancePreference()
-        reloadCurrentTab()
+        refreshVisibleAppearance()
     }
 
     private func updateStringPreference(from sender: NSPopUpButton) {
@@ -1539,8 +1732,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func refreshLocalizedInterface() {
-        window?.title = AppText.localized("右键菜单助手", "RightMenuMini")
-        sidebarBrandLabel?.stringValue = AppText.localized("右键菜单助手", "RightMenuMini")
+        window?.title = "MenuWish"
+        sidebarBrandLabel?.stringValue = "MenuWish"
 
         for (tab, button) in sidebarButtons {
             for subview in button.subviews {
@@ -1550,11 +1743,112 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        reloadCurrentTab()
+        refreshVisibleLocalizedContent()
     }
 
     private func reloadCurrentTab() {
         selectSidebarTab(currentTab)
+    }
+
+    private func refreshVisibleLocalizedContent() {
+        sectionTitleLabels["section.status"]?.stringValue = AppText.localized("服务与状态", "Service & Status")
+        sectionTitleLabels["section.preferences"]?.stringValue = AppText.localized("偏好", "Preferences")
+        sectionTitleLabels["section.about"]?.stringValue = AppText.localized("关于", "About")
+        sectionTitleLabels["section.layout"]?.stringValue = AppText.localized("菜单布局", "Menu Layout")
+        sectionTitleLabels["section.features"]?.stringValue = AppText.localized("快捷功能", "Quick Actions")
+
+        localizedButtons["authorization"]?.title = AppText.localized("授权", "Authorize")
+        localizedButtons["version.check"]?.title = updateDownloadAvailable
+            ? AppText.localized("前往下载最新版本", "Download Latest")
+            : AppText.localized("检查", "Check")
+        localizedButtons["github"]?.title = AppText.localized("前往", "Visit")
+
+        rowTitleLabels[RightMenuMiniPreferences.isMenuEnabled]?.stringValue = AppText.localized("右键菜单服务", "Context Menu Service")
+        rowTitleLabels[RightMenuMiniPreferences.languageMode]?.stringValue = AppText.localized("语言", "Language")
+        rowDetailLabels[RightMenuMiniPreferences.languageMode]?.stringValue = AppText.localized("选择 App 和 Finder 菜单显示语言", "Choose the app and Finder menu language")
+        rowTitleLabels[RightMenuMiniPreferences.appearanceMode]?.stringValue = AppText.localized("显示模式", "Display Mode")
+        rowDetailLabels[RightMenuMiniPreferences.appearanceMode]?.stringValue = AppText.localized("选择浅色、深色或跟随系统", "Choose light, dark, or system appearance")
+        rowTitleLabels["version"]?.stringValue = AppText.localized("当前版本", "Current Version")
+        rowDetailLabels["version"]?.stringValue = AppText.localized("可检查最新版本与发布日志", "Check latest version and release notes")
+
+        updatePopup(
+            RightMenuMiniPreferences.languageMode,
+            items: [
+                (RightMenuMiniPreferences.systemValue, AppText.localized("跟随系统", "System")),
+                (RightMenuMiniPreferences.chineseValue, "简体中文"),
+                (RightMenuMiniPreferences.englishValue, "English")
+            ]
+        )
+        updatePopup(
+            RightMenuMiniPreferences.appearanceMode,
+            items: [
+                (RightMenuMiniPreferences.systemValue, AppText.localized("跟随系统", "System")),
+                (RightMenuMiniPreferences.lightValue, AppText.localized("浅色", "Light")),
+                (RightMenuMiniPreferences.darkValue, AppText.localized("深色", "Dark"))
+            ]
+        )
+        flatLayoutCard?.updateText(
+            title: AppText.localized("平铺显示", "Flat Layout"),
+            detail: AppText.localized("直接显示三项功能", "Show actions directly")
+        )
+        groupedLayoutCard?.updateText(
+            title: AppText.localized("折叠显示", "Grouped Layout"),
+            detail: AppText.localized("三项功能集合显示", "Show actions in a submenu")
+        )
+
+        rowTitleLabels[RightMenuMiniPreferences.isNewTextEnabled]?.stringValue = AppText.localized("新建 Text", "New Text")
+        rowDetailLabels[RightMenuMiniPreferences.isNewTextEnabled]?.stringValue = AppText.localized("在当前位置创建 Untitled.txt", "Create Untitled.txt here")
+        rowTitleLabels[RightMenuMiniPreferences.isTerminalEnabled]?.stringValue = AppText.localized("进入终端", "Open Terminal")
+        rowDetailLabels[RightMenuMiniPreferences.isTerminalEnabled]?.stringValue = AppText.localized("从当前位置打开 Terminal", "Open Terminal at this location")
+        rowTitleLabels[RightMenuMiniPreferences.isCopyPathEnabled]?.stringValue = AppText.localized("拷贝路径", "Copy Path")
+        rowDetailLabels[RightMenuMiniPreferences.isCopyPathEnabled]?.stringValue = AppText.localized("复制所选项目或当前文件夹路径", "Copy selected paths or current folder")
+
+        applyAuthorizationStatus(finderExtensionEnabled)
+    }
+
+    private func updatePopup(_ key: String, items: [(value: String, title: String)]) {
+        guard let popup = popupControls[key] else {
+            return
+        }
+
+        let selectedValue = RightMenuMiniPreferences.string(key, in: preferences)
+        popup.removeAllItems()
+        items.forEach { item in
+            popup.addItem(withTitle: item.title)
+            popup.lastItem?.representedObject = item.value
+        }
+
+        if let selectedItem = popup.itemArray.first(where: { $0.representedObject as? String == selectedValue }) {
+            popup.select(selectedItem)
+        }
+    }
+
+    private func refreshVisibleAppearance() {
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0
+
+            cardViews.forEach { view in
+                view.layer?.backgroundColor = cardBackgroundColor.cgColor
+                view.layer?.borderColor = cardBorderColor.cgColor
+                view.layer?.shadowOpacity = usesDarkAppearance ? 0.12 : 0.04
+            }
+            dividerLines.forEach { line in
+                line.layer?.backgroundColor = separatorLayerColor.cgColor
+            }
+            iconTileViews.forEach { tile in
+                if let color = iconTileColors[ObjectIdentifier(tile)] {
+                    tile.layer?.backgroundColor = tintBackgroundColor(for: color).cgColor
+                }
+            }
+
+            flatLayoutCard?.updateAppearance()
+            groupedLayoutCard?.updateAppearance()
+            refreshSidebarSelectionAppearance()
+            versionBadge?.layer?.backgroundColor = versionBadgeBackgroundColor.cgColor
+            versionBadge?.layer?.borderColor = versionBadgeBorderColor.cgColor
+            versionBadgeLabel?.textColor = .controlAccentColor
+            applyAuthorizationStatus(finderExtensionEnabled)
+        }
     }
 
     @objc private func preferenceSwitchChanged(_ sender: NSSwitch) {
@@ -1688,7 +1982,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
+        removeStaleFinderExtensions(keeping: extensionURL)
         runPluginKit(arguments: ["-a", extensionURL.path])
+    }
+
+    private func removeStaleFinderExtensions(keeping currentExtensionURL: URL) {
+        finderExtensionEntries()
+            .filter { entry in
+                entry.identifier == extensionBundleIdentifier
+                    && !sameFilePath(entry.url, currentExtensionURL)
+            }
+            .forEach { entry in
+                runPluginKit(arguments: ["-r", entry.url.path])
+            }
     }
 
     private func runPluginKit(arguments: [String]) {
@@ -1702,6 +2008,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @discardableResult
     private func refreshAuthorizationStatus() -> Bool {
         let isEnabled = finderExtensionIsEnabled()
+        applyAuthorizationStatus(isEnabled)
+        return isEnabled
+    }
+
+    private func applyAuthorizationStatus(_ isEnabled: Bool) {
         finderExtensionEnabled = isEnabled
         statusMenuAuthorizationItem?.isHidden = isEnabled
         authorizationButton?.isHidden = isEnabled
@@ -1739,16 +2050,79 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         refreshPreferenceControls()
-        return isEnabled
     }
 
     private func finderExtensionIsEnabled() -> Bool {
-        let output = runPluginKitAndCapture(arguments: ["-m", "-i", extensionBundleIdentifier])
-        for line in output.components(separatedBy: .newlines) where line.contains(extensionBundleIdentifier) {
-            return line.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("+")
+        let entries = finderExtensionEntries()
+
+        if let extensionURL = Bundle.main.builtInPlugInsURL?.appendingPathComponent("RightMenuMiniFinderExtension.appex"),
+           let currentEntry = entries.first(where: { entry in
+               entry.identifier == extensionBundleIdentifier && sameFilePath(entry.url, extensionURL)
+           }) {
+            return currentEntry.isEnabled
         }
 
-        return false
+        return entries.contains { entry in
+            entry.identifier == extensionBundleIdentifier && entry.isEnabled
+        }
+    }
+
+    private struct FinderExtensionEntry {
+        let identifier: String
+        let isEnabled: Bool
+        let url: URL
+    }
+
+    private func finderExtensionEntries() -> [FinderExtensionEntry] {
+        let output = runPluginKitAndCapture(arguments: [
+            "-m",
+            "-A",
+            "-v",
+            "-p",
+            "com.apple.FinderSync",
+            "-i",
+            extensionBundleIdentifier
+        ])
+
+        return output
+            .components(separatedBy: .newlines)
+            .compactMap(parseFinderExtensionEntry)
+    }
+
+    private func parseFinderExtensionEntry(_ line: String) -> FinderExtensionEntry? {
+        let fields = line.components(separatedBy: "\t")
+        guard fields.count >= 4 else {
+            return nil
+        }
+
+        let stateAndIdentifier = fields[0].trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let state = stateAndIdentifier.first, state == "+" || state == "-" else {
+            return nil
+        }
+
+        let rawIdentifier = stateAndIdentifier
+            .dropFirst()
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let identifier = rawIdentifier
+            .split(separator: "(", maxSplits: 1)
+            .first
+            .map(String.init) ?? rawIdentifier
+        let path = fields[3].trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !identifier.isEmpty, !path.isEmpty else {
+            return nil
+        }
+
+        return FinderExtensionEntry(
+            identifier: identifier,
+            isEnabled: state == "+",
+            url: URL(fileURLWithPath: path)
+        )
+    }
+
+    private func sameFilePath(_ lhs: URL, _ rhs: URL) -> Bool {
+        lhs.resolvingSymlinksInPath().standardizedFileURL.path
+            == rhs.resolvingSymlinksInPath().standardizedFileURL.path
     }
 
     private func runPluginKitAndCapture(arguments: [String]) -> String {
@@ -1794,15 +2168,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func checkForUpdates() {
         latestReleasePageURL = nil
+        updateDownloadAvailable = false
         updateCheckButton?.title = AppText.localized("检查", "Check")
         updateCheckButton?.action = #selector(checkForUpdates)
         updateCheckButton?.isEnabled = false
         updateStatusLabel?.stringValue = AppText.localized("正在检查 GitHub Releases...", "Checking GitHub Releases...")
 
-        let webURL = URL(string: "https://github.com/Goonwb/RightMenuMini/releases/latest")!
+        let webURL = URL(string: "https://github.com/Goonwb/MenuWish/releases/latest")!
         var request = URLRequest(url: webURL)
         request.httpMethod = "GET"
-        request.setValue("RightMenuMini/\(currentVersionString)", forHTTPHeaderField: "User-Agent")
+        request.setValue("MenuWish/\(currentVersionString)", forHTTPHeaderField: "User-Agent")
 
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             DispatchQueue.main.async {
@@ -1859,6 +2234,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self.latestReleasePageURL = finalURL
 
                 if self.isVersion(latestVersion, newerThan: self.currentVersionString) {
+                    self.updateDownloadAvailable = true
                     self.updateStatusLabel?.stringValue = AppText.localized(
                         "发现新版本 \(tagName)，可前往 GitHub 下载。",
                         "New version \(tagName) is available on GitHub."
@@ -1866,6 +2242,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     self.updateCheckButton?.title = AppText.localized("前往下载最新版本", "Download Latest")
                     self.updateCheckButton?.action = #selector(self.openLatestReleaseOrRepository)
                 } else {
+                    self.updateDownloadAvailable = false
                     self.updateStatusLabel?.stringValue = AppText.localized(
                         "已是最新版本：\(self.versionDescription)",
                         "You are up to date: \(self.versionDescription)"
@@ -2146,8 +2523,12 @@ final class LayoutOptionCard: NSView {
         iconTile.layer?.cornerRadius = 8
         iconTile.layer?.cornerCurve = .continuous
 
-        iconView.image = NSImage(systemSymbolName: symbol, accessibilityDescription: title)
-        iconView.symbolConfiguration = .init(pointSize: 16, weight: .semibold)
+        if let icon = MenuWishAssets.image(named: symbol, size: NSSize(width: 18, height: 18)) {
+            iconView.image = icon
+        } else {
+            iconView.image = NSImage(systemSymbolName: symbol, accessibilityDescription: title)
+            iconView.symbolConfiguration = .init(pointSize: 16, weight: .semibold)
+        }
         iconView.translatesAutoresizingMaskIntoConstraints = false
         iconTile.addSubview(iconView)
 
@@ -2194,6 +2575,12 @@ final class LayoutOptionCard: NSView {
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    func updateText(title: String, detail: String) {
+        titleLabel.stringValue = title
+        detailLabel.stringValue = detail
+        iconView.image?.accessibilityDescription = title
     }
 
     override func updateTrackingAreas() {

@@ -13,6 +13,8 @@
 		0A0A00000000000000000004 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A0A00000000000000000031 /* Cocoa.framework */; };
 		0A0A00000000000000000005 /* FinderSync.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A0A00000000000000000032 /* FinderSync.framework */; };
 		0A0A00000000000000000006 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0A0A00000000000000000019 /* Assets.xcassets */; };
+		0A0A00000000000000000007 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0A0A0000000000000000001C /* InfoPlist.strings */; };
+		0A0A00000000000000000008 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0A0A0000000000000000001D /* InfoPlist.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +48,10 @@
 		0A0A00000000000000000014 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0A0A00000000000000000018 /* RightMenuMiniFinderExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RightMenuMiniFinderExtension.entitlements; sourceTree = "<group>"; };
 		0A0A00000000000000000019 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		0A0A0000000000000000001A /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		0A0A0000000000000000001B /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		0A0A0000000000000000001E /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		0A0A0000000000000000001F /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		0A0A00000000000000000015 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		0A0A00000000000000000016 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		0A0A00000000000000000017 /* install-local.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "install-local.sh"; sourceTree = "<group>"; };
@@ -103,6 +109,7 @@
 				0A0A00000000000000000011 /* AppDelegate.swift */,
 				0A0A00000000000000000013 /* Info.plist */,
 				0A0A00000000000000000019 /* Assets.xcassets */,
+				0A0A0000000000000000001C /* InfoPlist.strings */,
 			);
 			path = RightMenuMini;
 			sourceTree = "<group>";
@@ -113,6 +120,7 @@
 				0A0A00000000000000000012 /* FinderSync.swift */,
 				0A0A00000000000000000014 /* Info.plist */,
 				0A0A00000000000000000018 /* RightMenuMiniFinderExtension.entitlements */,
+				0A0A0000000000000000001D /* InfoPlist.strings */,
 			);
 			path = RightMenuMiniFinderExtension;
 			sourceTree = "<group>";
@@ -197,6 +205,8 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				"zh-Hans",
+				"zh-Hant",
 				Base,
 			);
 			mainGroup = 0A0A00000000000000000081;
@@ -216,6 +226,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0A0A00000000000000000006 /* Assets.xcassets in Resources */,
+				0A0A00000000000000000007 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -223,10 +234,32 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0A0A00000000000000000008 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		0A0A0000000000000000001C /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				0A0A0000000000000000001A /* zh-Hans */,
+				0A0A0000000000000000001E /* zh-Hant */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		0A0A0000000000000000001D /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				0A0A0000000000000000001B /* zh-Hans */,
+				0A0A0000000000000000001F /* zh-Hant */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin PBXSourcesBuildPhase section */
 		0A0A00000000000000000051 /* Sources */ = {
@@ -372,11 +405,11 @@
 		0A0A000000000000000000B3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon2026Corners;
 				CODE_SIGN_IDENTITY = "Apple Development: awubo1999@gmail.com (U3L95K5S84)";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_LANGUAGE = en;
 				DEVELOPMENT_TEAM = FVK2878B2R;
@@ -387,7 +420,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.2;
+				MARKETING_VERSION = 0.1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.codex.RightMenuMini;
 				PRODUCT_NAME = RightMenuMini;
 				SWIFT_VERSION = 6.0;
@@ -397,11 +430,11 @@
 		0A0A000000000000000000B4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon2026Corners;
 				CODE_SIGN_IDENTITY = "Apple Development: awubo1999@gmail.com (U3L95K5S84)";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_LANGUAGE = en;
 				DEVELOPMENT_TEAM = FVK2878B2R;
@@ -412,7 +445,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.2;
+				MARKETING_VERSION = 0.1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.codex.RightMenuMini;
 				PRODUCT_NAME = RightMenuMini;
 				SWIFT_VERSION = 6.0;
@@ -427,7 +460,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development: awubo1999@gmail.com (U3L95K5S84)";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_LANGUAGE = en;
 				DEVELOPMENT_TEAM = FVK2878B2R;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -437,7 +470,7 @@
 					"@executable_path/../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.2;
+				MARKETING_VERSION = 0.1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.codex.RightMenuMini.FinderExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -453,7 +486,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development: awubo1999@gmail.com (U3L95K5S84)";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_LANGUAGE = en;
 				DEVELOPMENT_TEAM = FVK2878B2R;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -463,7 +496,7 @@
 					"@executable_path/../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.2;
+				MARKETING_VERSION = 0.1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.codex.RightMenuMini.FinderExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
