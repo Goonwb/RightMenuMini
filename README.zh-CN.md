@@ -1,11 +1,19 @@
 <p align="center">
-  <img src="RightMenuMini/Resources/RightMenuMini-source.png" width="112" alt="右键菜单助手图标">
+  <img src="docs/images/menuwish-icon.png" width="112" alt="MenuWish 图标">
 </p>
 
-<h1 align="center">右键菜单助手</h1>
+<h1 align="center">MenuWish</h1>
 
 <p align="center">
-  一个简洁的 macOS Finder 右键菜单扩展。
+  <strong>Make your Finder right-click as you wish.</strong>
+</p>
+
+<p align="center">
+  轻量开源的 Mac Finder 菜单增强：新建文本、进入终端、拷贝路径。
+</p>
+
+<p align="center">
+  <strong>English:</strong> A lightweight macOS extension for New Text, Terminal &amp; Copy Path.
 </p>
 
 <p align="center">
@@ -20,9 +28,13 @@
   <a href="https://github.com/Goonwb">作者</a>
 </p>
 
+## 为什么做 MenuWish？
+
+macOS Finder 原生右键菜单没有直接的**新建文本文件**功能，在当前文件夹打开终端或复制完整路径也往往需要额外操作。MenuWish 通过原生 Finder Sync 扩展，把这三个高频操作直接放进 Mac 右键菜单。
+
 ## 功能
 
-右键菜单助手专注给 Finder 右键菜单补上三项高频小动作：
+MenuWish 专注给 Finder 右键菜单补上三项高频小动作：
 
 - **新建 Text**：在当前 Finder 文件夹创建空白 `Untitled.txt`，重名时自动追加编号。
 - **进入终端**：在当前 Finder 位置打开 Terminal。
@@ -34,17 +46,17 @@ App 内支持：
 - 子功能开关：单独启用或停用三项功能。
 - 折叠显示：将三项功能收进一个子菜单。
 - 版本检查：从 GitHub Releases 手动检查最新版本。
-- 语言：简体中文或 English。
+- 语言：跟随系统，支持简体中文、繁体中文和 English。
 - 外观：跟随系统、浅色或深色模式。
 
 ## 界面预览
 
 <p align="center">
-  <img src="docs/images/general-zh-CN.png" alt="右键菜单助手通用界面" width="820">
+  <img src="docs/images/general-zh-CN.webp" alt="MenuWish 通用界面" width="820">
 </p>
 
 <p align="center">
-  <img src="docs/images/actions-zh-CN.png" alt="右键菜单助手快捷功能界面" width="820">
+  <img src="docs/images/actions-zh-CN.webp" alt="MenuWish 快捷功能界面" width="820">
 </p>
 
 ## 系统要求
@@ -76,19 +88,19 @@ open build/Build/Products/Release/RightMenuMini.app
 
 ## 首次授权
 
-右键菜单助手使用 Apple 的 Finder Sync 扩展机制。首次使用前需要手动启用扩展：
+MenuWish 使用 Apple 的 Finder Sync 扩展机制。首次使用前需要手动启用扩展：
 
-1. 打开右键菜单助手。
+1. 打开 MenuWish。
 2. 点击 **初次授权**。
-3. 在 **文件提供程序** 扩展弹窗中启用 **右键菜单助手**。
+3. 在 **文件提供程序** 扩展弹窗中启用 **MenuWish**。
 
 未授权时，App 内所有功能开关会显示为关闭并禁用；授权后会恢复默认或已保存的设置。
 
 ## 说明
 
-- 当前版本：`0.1.2`。
+- 当前版本：`0.1.3`。
 - 当前分发版本尚未公证。其他用户安装时，可能需要在 macOS 安全设置中手动允许打开。
 
 ## 许可证
 
-右键菜单助手基于 [MIT License](LICENSE) 开源。
+MenuWish 基于 [MIT License](LICENSE) 开源。
